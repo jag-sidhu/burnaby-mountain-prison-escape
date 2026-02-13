@@ -1,0 +1,22 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\begin{document}
+
+\section*{Overall Plan and Game Description}
+
+\textbf{Tittle: Escape From The Burnaby Mountain Prison}
+
+\subsection*{Overall Plan}
+The goal of our project is to develop a 2D arcade-style prison escape game written in Java. Our development process will follow an object-oriented approach based on the architecture defined in the UML class diagram. The design separates system responsibilities across components such as game control, entity behaviour, and game state management. 
+
+The “Game” class acts as the central controller, managing the current game state, level progression, timing, and the main loops. The game transitions through multiple states such as the main menu, ready, playing, completed level, dying, and ending the game based on the events taking place.
+
+All moving objects will inherit from the abstract “Entity” class which defines the basic properties of position, direction, speed, and movement possibility. This will allow for consistent movement handling across the inmate player and the guard enemies. The “PrisonMap” class represents the 2D grid-based map and is responsible for reading tile data and enforcing wall and barrier constraints. The enemy behaviour will be within the “Guard” class holding the guard type and specific guard states to control movement logic and interaction with the player. Our design will also implement a “Powerup” class which supports the spawn, activation time, and collection logic for the in-game boosts. 
+
+\subsection*{Game Description}
+Our game, Escape From The Burnaby Mountain Prison, is a prison escape-style 2D maze game with inspiration and influence from Simon Fraser University. The player controls the locked-up inmate using standard up-down-left-right movement through the Burnaby Mountain Prison and collecting the required items and avoiding the security guards trying to get the highest score possible.
+
+The player starts at the designated start position on the map and can move one around the prison one grid cell given the direction chosen is not blocked by a wall or barrier. The enemy guards continue to move around even if the player stands still. The game includes multiple guards each with a defined type and state including patrolling, searching, disrupted, or returning. If the player collides with a guard with only one life left, the player dies and the game ends resulting in a loss. The player also losses if they obtain a negative score. The player may also encounter static enemies decreasing their final score including, handcuffs, parking tickets, and a bear. The player can also obtain power-ups which appear across the map and temporarily change the behaviour of the player/ guards. Some power ups include speed boosts provided by the renaissance coffee cup, freezing guard positions for a short period of time with the snow day powerup, etc… The game is completed once the player collects all rewards and successfully reaches the designated finish spot. The rewards include a laptop, student ID, and pet raccoon. These rewards also increase the player's score.
+
+
+\end{document}
