@@ -7,4 +7,5 @@ public enum GameState {
     DYING,
     LEVEL_COMPLETE,
     GAME_OVER,
+    FROZEN
 }
