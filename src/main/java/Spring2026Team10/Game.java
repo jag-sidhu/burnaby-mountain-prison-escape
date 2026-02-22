@@ -2,12 +2,25 @@ package Spring2026Team10;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Game {
     private GameState state;
     private Player player;
     private PrisonMap map;
     private HUD hud;
+    private final List<Guard> guards;
+    private Powerups powerups;
+
+    public Game() {
+        state = GameState.MENU;
+        player = new Player();
+        map = new PrisonMap();
+        hud = new HUD();
+        guards = new ArrayList<>();
+        powerups = new Powerups();
+    }
 
     public void start() {}
     public void update() {
