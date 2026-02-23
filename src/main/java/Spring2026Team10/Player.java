@@ -1,6 +1,6 @@
 package Spring2026Team10;
 
-public class Player {
+public class Player extends Entity {
     public void update() {
         // Placeholder for upcoming movement/input logic.
     }
