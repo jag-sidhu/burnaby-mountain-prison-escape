@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.Timer;
 
 public class Game {
     private GameState state;
@@ -12,6 +13,8 @@ public class Game {
     private HUD hud;
     private final List<Guard> guards;
     private Powerups powerups;
+    private Timer timer;
+
 
     public Game() {
         state = GameState.MENU;
@@ -22,7 +25,16 @@ public class Game {
         powerups = new Powerups();
     }
 
-    public void start() {}
+    public void start() {
+        resetGame();
+        changeState(GameState.PLAYING);
+
+        timer = new Timer(16, e -> {
+            update();
+            PrisonMap.update();
+        });
+        timer.start();
+    }
     public void update() {
         if (state == GameState.PLAYING) {
             player.update();
@@ -31,8 +43,26 @@ public class Game {
             map.update();
         }
     }
-    public void render(Graphics g) {}
+
+    public void render(Graphics g) {
+        switch(state) {
+            case MENU:
+                drawMenu(g);
+                break;
+            case PLAYING:
+                drawGame();
+                break;
+            case GAME_OVER:
+                drawGameOver(g);
+                break;
+            case LEVEL_COMPLETE:
+                drawLevelComplete(g);
+                break;
+        }
+    }
+
     public void handleInput(KeyEvent e) {}
+
     public void resetGame() {
         map.reset();
         player.reset();
@@ -41,6 +71,10 @@ public class Game {
 
     private void changeState(GameState state) {
         this.state = state;
+
+        if(state == GameState.GAME_OVER && timer != null) {
+            timer.stop();
+        }
     }
 
 }

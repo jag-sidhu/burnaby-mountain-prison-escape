@@ -15,7 +15,7 @@ public class PrisonMap {
         reset();
     }
 
-    public void update() {
+    public static void update() {
         // Static map for now.
     }
 
