@@ -99,4 +99,12 @@ public class PrisonMap {
         }
         tiles[row][col] = tile;
     }
+
+    public boolean isWalkable(int row, int col) {
+        if (!isInside(row, col)) {
+            return false;
+        }
+        TileType tile = getTile(row, col);
+        return tile == TileType.FLOOR || tile == TileType.START || tile == TileType.END;
+    }
 }
