@@ -6,7 +6,8 @@ public enum TileType {
     WALL(new Color(36, 46, 58), false),
     FLOOR(new Color(212, 220, 228), true),
     START(new Color(89, 174, 93), true),
-    END(new Color(219, 81, 81), true);
+    END(new Color(219, 81, 81), true),
+    HAZARD(new Color(150, 50, 200), true);
 
     private final Color color;
     private final boolean walkable;

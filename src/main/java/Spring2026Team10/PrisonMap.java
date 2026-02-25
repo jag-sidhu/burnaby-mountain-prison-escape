@@ -56,6 +56,10 @@ public class PrisonMap {
 
         setTile(startTile.y, startTile.x, TileType.START);
         setTile(endTile.y, endTile.x, TileType.END);
+
+        setTile(14, 3, TileType.HAZARD); 
+        setTile(15, 3, TileType.HAZARD);
+        setTile(14, 5, TileType.HAZARD); // Placeholder hazards to test
     }
 
     public int getRows() {
@@ -101,10 +105,9 @@ public class PrisonMap {
     }
 
     public boolean isWalkable(int row, int col) {
-        if (!isInside(row, col)) {
-            return false;
-        }
-        TileType tile = getTile(row, col);
-        return tile == TileType.FLOOR || tile == TileType.START || tile == TileType.END;
+    if (!isInside(row, col)) {
+        return false;
+    }
+    return getTile(row, col).isWalkable();
     }
 }
