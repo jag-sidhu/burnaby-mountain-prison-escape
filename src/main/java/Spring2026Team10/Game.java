@@ -19,6 +19,7 @@ public class Game implements Runnable {
     static Thread gameThread;
     private final MapPanel mapPanel;
     KeyHandler keyHandler = new KeyHandler();
+    private final List<Hazard> hazards;
 
     //Set FPS
     int FPS = 60;
@@ -32,10 +33,14 @@ public class Game implements Runnable {
         player = new Player(start.x, start.y, map);
         guards = new ArrayList<>();
         powerups = new Powerups();
+        hazards = new ArrayList<>();
+
+        loadEntitiesFromMap();
 
         // inform panel about the entities it should draw
         mapPanel.setPlayer(player);
         mapPanel.setGuards(guards);
+        mapPanel.setHazards(hazards);
 
         //add key listener to mapPanel and focus on receiving key events
         mapPanel.addKeyListener(keyHandler);
@@ -56,6 +61,13 @@ public class Game implements Runnable {
             guards.forEach(g -> g.update(player));
             powerups.update();
             PrisonMap.update(); // static for now
+
+            for (Hazard h : hazards) {
+                // If player is on the exact same tile and hazard is active
+                if (h.isActive() && player.getX() == (int)h.getX() && player.getY() == (int)h.getY()) {
+                    h.applyTo(player);
+                }
+            }
         }
     }
 
@@ -128,6 +140,22 @@ public class Game implements Runnable {
                 nextdraw += drawInterval;
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private void loadEntitiesFromMap() {
+        hazards.clear();
+        // Cycle through hazard types just to test all of them
+        HazardType[] types = HazardType.values();
+        int typeIndex = 0;
+
+        for (int row = 0; row < map.getRows(); row++) {
+            for (int col = 0; col < map.getCols(); col++) {
+                if (map.getTile(row, col) == TileType.HAZARD) {
+                    hazards.add(new Hazard(col, row, types[typeIndex % types.length]));
+                    typeIndex++;
+                }
             }
         }
     }

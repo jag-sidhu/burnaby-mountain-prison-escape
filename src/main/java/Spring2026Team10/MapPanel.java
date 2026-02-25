@@ -24,6 +24,12 @@ public class MapPanel extends JPanel {
     private String timeText = "XXX";
     private String scoreText = "XXX";
 
+    private java.util.List<Hazard> hazards = new java.util.ArrayList<>();
+    
+    public void setHazards(java.util.List<Hazard> hazards) {
+        this.hazards = hazards;
+    }
+
     public MapPanel(PrisonMap prisonMap) {
         this.prisonMap = prisonMap;
         int width = prisonMap.getCols() * CELL_SIZE + 1;
@@ -52,6 +58,7 @@ public class MapPanel extends JPanel {
         paintStartEndLabels(g2d); // markers drawn over tiles
         paintGrid(g2d);
         paintPlayer(g2d);         // player & guards on top of markers
+        paintHazards(g2d);
         paintGuards(g2d);
         paintBottomHud(g2d);
 
@@ -202,5 +209,20 @@ public class MapPanel extends JPanel {
 
         g2d.setColor(color);
         g2d.fillRect(x + inset, y + inset, CELL_SIZE - (inset * 2), CELL_SIZE - (inset * 2));
+    }
+
+    private void paintHazards(Graphics2D g2d) {
+        if (hazards == null) return;
+        for (Hazard hazard : hazards) {
+            if (hazard.isActive()) {
+                int hx = (int)hazard.getX() * CELL_SIZE;
+                int hy = (int)hazard.getY() * CELL_SIZE;
+                int size = CELL_SIZE - 6;
+                
+                // Draw a yellow triangle for hazards (can edit)
+                g2d.setColor(Color.YELLOW);
+                g2d.fillOval(hx + 3, hy + 3, size, size); 
+            }
+        }
     }
 }
