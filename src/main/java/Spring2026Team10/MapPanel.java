@@ -1,6 +1,5 @@
 package Spring2026Team10;
 
-import javax.swing.JPanel;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -10,6 +9,8 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
 
+import javax.swing.JPanel;
+
 public class MapPanel extends JPanel {
     private static final int CELL_SIZE = 20;
     private static final Color GRID_COLOR = new Color(60, 60, 60);
@@ -18,6 +19,8 @@ public class MapPanel extends JPanel {
     private static final Color HUD_BOX_BG = new Color(250, 250, 250);
 
     private final PrisonMap prisonMap;
+    private Player player;
+    private java.util.List<Guard> guards = new java.util.ArrayList<>();
     private String timeText = "XXX";
     private String scoreText = "XXX";
 
@@ -46,8 +49,10 @@ public class MapPanel extends JPanel {
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         paintTiles(g2d);
-        paintStartEndLabels(g2d);
+        paintStartEndLabels(g2d); // markers drawn over tiles
         paintGrid(g2d);
+        paintPlayer(g2d);         // player & guards on top of markers
+        paintGuards(g2d);
         paintBottomHud(g2d);
 
         g2d.dispose();
@@ -110,6 +115,16 @@ public class MapPanel extends JPanel {
         drawHudBox(g2d, scoreX + labelWidth, hudY, valueWidth, scoreText);
     }
 
+    public void setPlayer(Player player) {
+        this.player = player;
+        repaint();
+    }
+
+    public void setGuards(java.util.List<Guard> guards) {
+        this.guards = guards;
+        repaint();
+    }
+
     private void paintStartEndLabels(Graphics2D g2d) {
         Point start = prisonMap.getStartTile();
         Point end = prisonMap.getEndTile();
@@ -153,6 +168,31 @@ public class MapPanel extends JPanel {
         int drawX = centerX - (textWidth / 2);
         int drawY = centerY + (textHeight / 3);
         g2d.drawString(text, drawX, drawY);
+    }
+
+    private void paintPlayer(Graphics2D g2d) {
+        if (player == null) return;
+        int px = player.getX() * CELL_SIZE;
+        int py = player.getY() * CELL_SIZE;
+        int size = CELL_SIZE - 4;
+        g2d.setColor(Color.BLUE);
+        g2d.fillOval(px + 2, py + 2, size, size);
+    }
+
+    private void paintGuards(Graphics2D g2d) {
+        if (guards == null) return;
+        for (Guard guard : guards) {
+            int gx = guard.getX() * CELL_SIZE;
+            int gy = guard.getY() * CELL_SIZE;
+            int size = CELL_SIZE - 4;
+            // choose color based on type
+            if (guard.getType() == Guard.GuardType.PATROL) {
+                g2d.setColor(Color.ORANGE);
+            } else {
+                g2d.setColor(Color.RED);
+            }
+            g2d.fillOval(gx + 2, gy + 2, size, size);
+        }
     }
 
     private void drawMarker(Graphics2D g2d, Point tile, Color color) {

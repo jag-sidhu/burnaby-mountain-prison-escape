@@ -9,7 +9,7 @@ public abstract class Entity {
     protected double posX; //for smoother movement
     protected double posY; //for smoother movement
 
-    protected int speed = 1; // default number of tiles per frame
+    protected double speed = 0.25; // default tiles per frame (reduced for slower movement)
 
     protected PrisonMap map;
 

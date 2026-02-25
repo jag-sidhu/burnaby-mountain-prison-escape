@@ -40,7 +40,7 @@ public class Player extends Entity {
         score = 0;
         speedBoostActive = false;
         speedBoostDuration = 0;
-        speed = 1;
+        speed = 0.25; // reset to slow default
     }
 
     //collisions with guards
@@ -51,7 +51,7 @@ public class Player extends Entity {
     public void activateSpeedBoost(int duration) {
         speedBoostActive = true;
         speedBoostDuration = duration;
-        speed = 2; // double speed while active
+        speed = 0.5; // double speed while active
     }
 
     private void updatePowerUps() {
@@ -59,7 +59,7 @@ public class Player extends Entity {
             speedBoostDuration--;
             if (speedBoostDuration <= 0) {
                 speedBoostActive = false;
-                speed = 1; // reset to normal speed
+                speed = 0.25; // reset to normal speed
             }
         }
     }

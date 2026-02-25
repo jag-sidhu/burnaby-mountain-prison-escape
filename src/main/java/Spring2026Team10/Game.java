@@ -1,22 +1,23 @@
 package Spring2026Team10;
 
-import java.awt.*;
+import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.swing.Timer;
 
 public class Game implements Runnable {
     private GameState state;
-    private Player player;
-    private PrisonMap map;
-    private HUD hud;
+    private final Player player;
+    private final PrisonMap map;
+    // hud removed until we add functionality
     private final List<Guard> guards;
-    private Powerups powerups;
+    private final Powerups powerups;
     private Timer timer;
     static Thread gameThread;
-    private MapPanel mapPanel;
+    private final MapPanel mapPanel;
     KeyHandler keyHandler = new KeyHandler();
 
     //Set FPS
@@ -26,11 +27,15 @@ public class Game implements Runnable {
     public Game(MapPanel mapPanel) {
         this.mapPanel = mapPanel;
         state = GameState.MENU;
-        player = new Player();
         map = new PrisonMap();
-        hud = new HUD();
+        Point start = map.getStartTile();
+        player = new Player(start.x, start.y, map);
         guards = new ArrayList<>();
         powerups = new Powerups();
+
+        // inform panel about the entities it should draw
+        mapPanel.setPlayer(player);
+        mapPanel.setGuards(guards);
 
         //add key listener to mapPanel and focus on receiving key events
         mapPanel.addKeyListener(keyHandler);
@@ -47,48 +52,45 @@ public class Game implements Runnable {
     }
     public void update() {
         if (state == GameState.PLAYING) {
-            player.update();
-            guards.forEach(Guard::update);
+            player.update(keyHandler);
+            guards.forEach(g -> g.update(player));
             powerups.update();
-            map.update();
-        }
-        if (keyHandler.upPressed) {
-            //Move player up
-        }
-        else if (keyHandler.downPressed) {
-            //Move player down
-        }
-        else if (keyHandler.leftPressed) {
-            //Move player left
-        }
-        else if (keyHandler.rightPressed) {
-            //Move player right
+            PrisonMap.update(); // static for now
         }
     }
 
     public void render(Graphics g) {
         switch(state) {
-            case MENU:
+            case MENU -> {
                 //drawMenu(g);
-                break;
-            case PLAYING:
+            }
+            case READY -> {
+                //maybe render countdown
+            }
+            case PLAYING -> {
                 //drawGame();
-                break;
-            case GAME_OVER:
-                //drawGameOver(g);
-                break;
-            case LEVEL_COMPLETE:
+            }
+            case DYING -> {
+                //animation maybe
+            }
+            case FROZEN -> {
+                //paused state
+            }
+            case LEVEL_COMPLETE -> {
                 //drawLevelComplete(g);
-                break;
+            }
+            case GAME_OVER -> {
+                //drawGameOver(g);
+            }
         }
     }
 
     public void handleInput(KeyEvent e) {}
 
-    public static void resetGame() {
-        //map.reset();
-        //player.reset();
-        //guards.forEach(Guard::reset);
+    public void resetGame() {
+        map.reset();
+        player.reset();
+        guards.forEach(g -> {}); // placeholder in case guards have reset logic later
     }
 
     private void changeState(GameState state) {
@@ -100,13 +102,13 @@ public class Game implements Runnable {
     }
 
     @Override
+    @SuppressWarnings("BusyWait") // suppress warning about Thread.sleep in loop
     public void run() {
         double drawInterval = 1000000000 / FPS; // 1 second/60FPS
         double nextdraw = System.nanoTime() + drawInterval;
 
         while(gameThread != null) {
             System.out.println("Game loop running");
-            long currentTime = System.nanoTime();
 
             //Update character positions
             update();

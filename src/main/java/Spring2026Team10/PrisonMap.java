@@ -19,7 +19,7 @@ public class PrisonMap {
         // Static map for now.
     }
 
-    public void reset() {
+    public final void reset() {
         for (int row = 0; row < ROWS; row++) {
             Arrays.fill(tiles[row], TileType.FLOOR);
         }
