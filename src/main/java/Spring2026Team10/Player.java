@@ -5,6 +5,12 @@ public class Player extends Entity {
     //player's stats
     private int lives = 3;
     private int score = 0;
+    private boolean handsTiedActive = false;
+    private int handsTiedDuration = 0;
+    private boolean isSlowed = false;
+    private int slowedDuration = 0;
+    private boolean controlsInverted = false;
+    private int invertedDuration = 0;
 
     //when he grabs the powerups
     private boolean speedBoostActive = false;
@@ -20,10 +26,11 @@ public class Player extends Entity {
         updatePowerUps();
         double dx = 0, dy = 0;
         //currently can't move diagonally on the tiles, can change it if we want player to be able to do so
-        if (keyHandler.upPressed) dy = -1; 
-        else if (keyHandler.downPressed) dy = 1;
-        else if (keyHandler.leftPressed) dx = -1;
-        else if (keyHandler.rightPressed) dx = 1;
+        // Updated to handle inverted controls
+        if (keyHandler.upPressed) dy = controlsInverted ? 1 : -1; 
+        else if (keyHandler.downPressed) dy = controlsInverted ? -1 : 1;
+        else if (keyHandler.leftPressed) dx = controlsInverted ? 1 : -1;
+        else if (keyHandler.rightPressed) dx = controlsInverted ? -1 : 1;
 
         move(dx, dy); //moves the player based on the input and speed
         
@@ -62,6 +69,21 @@ public class Player extends Entity {
                 speed = 0.25; // reset to normal speed
             }
         }
+
+        if (handsTiedActive) {
+            if (--handsTiedDuration <= 0) handsTiedActive = false;
+        }
+
+        if (isSlowed) {
+            if (--slowedDuration <= 0) {
+                isSlowed = false;
+                speed = 0.25; // Reset to normal speed
+            }
+        }
+
+        if (controlsInverted) {
+            if (--invertedDuration <= 0) controlsInverted = false;
+        }
     }
 
     // Player lives and score
@@ -79,5 +101,27 @@ public class Player extends Entity {
 
     public void gainScore(int amount) {
         score += amount;
+    }
+
+
+    // Hazard methods
+    public void tieHands(int duration) {
+        handsTiedActive = true;
+        handsTiedDuration = duration;
+    }
+
+    public boolean isHandsTied() {
+        return handsTiedActive;
+    }
+
+    public void applySlowdown(int duration) {
+        isSlowed = true;
+        slowedDuration = duration;
+        speed = 0.25 * 0.70; // 30% reduction
+    }
+
+    public void invertControls(int duration) {
+        controlsInverted = true;
+        invertedDuration = duration;
     }
 }
