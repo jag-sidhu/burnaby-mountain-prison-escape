@@ -22,7 +22,7 @@ public class Game implements Runnable {
     private final List<Hazard> hazards;
 
     //Set FPS
-    int FPS = 60;
+    int FPS = 30;
 
 
     public Game(MapPanel mapPanel) {
