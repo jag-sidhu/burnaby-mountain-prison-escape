@@ -12,11 +12,16 @@ import java.awt.RenderingHints;
 import javax.swing.JPanel;
 
 public class MapPanel extends JPanel {
-    private static final int CELL_SIZE = 20;
+    // Half edge length -> quarter area per tile.
+    private static final int CELL_SIZE = 10;
     private static final Color GRID_COLOR = new Color(60, 60, 60);
+    private static final Color COIN_COLOR = new Color(242, 188, 34);
+    private static final Color COIN_BORDER_COLOR = new Color(178, 131, 22);
     private static final int HUD_HEIGHT = CELL_SIZE * 2;
     private static final Color HUD_BG = new Color(236, 236, 236);
     private static final Color HUD_BOX_BG = new Color(250, 250, 250);
+    private static final int UI_FONT_SIZE = Math.max(12, Math.round(CELL_SIZE * 1.2f));
+    private static final float BORDER_STROKE = Math.max(1.25f, CELL_SIZE * 0.125f);
 
     private final PrisonMap prisonMap;
     private Player player;
@@ -48,6 +53,10 @@ public class MapPanel extends JPanel {
         repaint();
     }
 
+    public PrisonMap getPrisonMap() {
+        return prisonMap;
+    }
+
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -56,6 +65,7 @@ public class MapPanel extends JPanel {
 
         paintTiles(g2d);
         paintStartEndLabels(g2d); // markers drawn over tiles
+        paintCoins(g2d);
         paintGrid(g2d);
         paintPlayer(g2d);         // player & guards on top of markers
         paintHazards(g2d);
@@ -92,7 +102,7 @@ public class MapPanel extends JPanel {
         }
 
         g2d.setColor(new Color(30, 30, 30));
-        g2d.setStroke(new BasicStroke(2.5f));
+        g2d.setStroke(new BasicStroke(BORDER_STROKE));
         g2d.drawRect(0, 0, maxX, maxY);
     }
 
@@ -120,6 +130,24 @@ public class MapPanel extends JPanel {
         int scoreX = startX + labelWidth + valueWidth + gapWidth;
         drawHudBox(g2d, scoreX, hudY, labelWidth, "Score");
         drawHudBox(g2d, scoreX + labelWidth, hudY, valueWidth, scoreText);
+    }
+
+    private void paintCoins(Graphics2D g2d) {
+        int inset = Math.max(1, CELL_SIZE / 5);
+        int size = Math.max(2, CELL_SIZE - (inset * 2));
+        for (int row = 0; row < prisonMap.getRows(); row++) {
+            for (int col = 0; col < prisonMap.getCols(); col++) {
+                if (!prisonMap.hasCoin(row, col)) {
+                    continue;
+                }
+                int x = col * CELL_SIZE + inset;
+                int y = row * CELL_SIZE + inset;
+                g2d.setColor(COIN_COLOR);
+                g2d.fillOval(x, y, size, size);
+                g2d.setColor(COIN_BORDER_COLOR);
+                g2d.drawOval(x, y, size, size);
+            }
+        }
     }
 
     public void setPlayer(Player player) {
@@ -151,7 +179,7 @@ public class MapPanel extends JPanel {
         g2d.setColor(new Color(250, 250, 250));
         g2d.fillRect(x, y, width, height);
 
-        g2d.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 24));
+        g2d.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, UI_FONT_SIZE));
         g2d.setColor(Color.BLACK);
         drawCenteredText(g2d, text, x + (width / 2), y + (height / 2));
     }
@@ -164,7 +192,7 @@ public class MapPanel extends JPanel {
         g2d.setStroke(new BasicStroke(1f));
         g2d.drawRect(x, y, width, HUD_HEIGHT);
 
-        g2d.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 24));
+        g2d.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, UI_FONT_SIZE));
         g2d.setColor(Color.BLACK);
         drawCenteredText(g2d, text, x + (width / 2), y + (HUD_HEIGHT / 2));
     }
