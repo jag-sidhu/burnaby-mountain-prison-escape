@@ -37,13 +37,13 @@ public class Hazard {
         switch (hazardType) {
             case HANDCUFFS:
                 player.gainScore(-penalty); 
-                player.tieHands(180); // 3 seconds at 60 FPS
+                player.tieHands(90); // 3 seconds at 30 FPS
                 System.out.println("You just got put in Handcuffs! Lost " + penalty + " points. Unable to collect rewards for 3 seconds.");
                 break;
 
             case PARKING_TICKET:
                 player.gainScore(-penalty);
-                player.applySlowdown(300); // 5 seconds at 60 FPS
+                player.applySlowdown(150); // 5 seconds at 30 FPS
                 System.out.println("You just received a Parking Ticket, slow down! Lost " + penalty + " points. Speed reduced by 30% for 5 seconds.");
                 break;
 
@@ -55,7 +55,7 @@ public class Hazard {
 
             case SPOILED_MILK:
                 player.gainScore(-penalty);
-                player.invertControls(240); // 4 seconds at 60 FPS
+                player.invertControls(120); // 4 seconds at 30 FPS
                 System.out.println("You just drank Spoiled Milk! Lost " + penalty + " points. Controls inverted for 4 seconds.");
                 break;
         }

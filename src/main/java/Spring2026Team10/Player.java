@@ -12,6 +12,7 @@ public class Player extends Entity {
     //player's stats
     private int lives = 3;
     private int score = 0;
+    private int rewards = 0;
     private boolean handsTiedActive = false;
     private int handsTiedDuration = 0;
     private boolean isSlowed = false;
@@ -121,6 +122,9 @@ public class Player extends Entity {
         score += amount;
     }
 
+    public void addReward() {
+        rewards++;
+    }
 
     // Hazard methods
     public void tieHands(int duration) {
