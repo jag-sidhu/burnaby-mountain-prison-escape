@@ -28,9 +28,9 @@ public class Guard extends Entity {
     //chase info
     private int agroRange = 5; // number of tiles player must be within to trigger chase
 
-    /**
-     * spawns a guard at a random walkable tile on the map
-     * makes sure the guard doesn't spawn on the player or other guards
+        /**
+     * Spawns a guard at a random walkable tile within a specific zone of the map.
+     * Ensures the guard does not spawn on the player or other guards.
      *
      * @param map              the prison map
      * @param type             the guard type (PATROL or CHASE)
@@ -38,36 +38,60 @@ public class Guard extends Entity {
      * @param player           the player to avoid spawning on
      * @param horizontalPatrol true for horizontal patrol, false for vertical
      * @param patrolLength     number of tiles in the patrol path
-     * @return a new Guard at a valid random position
+     * @param zoneCol          the column zone index
+     * @param zoneRow          the row zone index
+     * @param totalZoneCols    total number of column zones
+     * @param totalZoneRows    total number of row zones
+     * @return a new Guard at a valid random position within the zone
      */
-    public static Guard spawnRandomGuard(PrisonMap map, GuardType type, List<Guard> existingGuards, Player player, boolean horizontalPatrol, int patrolLength) {
-        Random rand = new Random();
-        int x, y;
-        boolean validSpawn;
+    public static Guard spawnRandomGuard(PrisonMap map, GuardType type, List<Guard> existingGuards,
+        Player player, boolean horizontalPatrol, int patrolLength,
+        int zoneCol, int zoneRow, int totalZoneCols, int totalZoneRows) {
 
-        do {
-            x = rand.nextInt(map.getCols());
-            y = rand.nextInt(map.getRows());
+    Random rand = new Random();
+    int x, y;
+    boolean validSpawn;
 
-            validSpawn = map.isWalkable(y, x);
+    // calculate the bounds of this zone
+    int zoneWidth = map.getCols() / totalZoneCols;
+    int zoneHeight = map.getRows() / totalZoneRows;
+    int minX = zoneCol * zoneWidth;
+    int maxX = minX + zoneWidth;
+    int minY = zoneRow * zoneHeight;
+    int maxY = minY + zoneHeight;
 
-            //prevents spawning on the player
-            if (player != null && player.getX() == x && player.getY() == y) {
-                validSpawn = false;
-            }
-            //makes sure guards don't spawn on other guards
-            if (existingGuards != null) {
-                for (Guard g : existingGuards) {
-                    if (g.getX() == x && g.getY() == y) {
-                        validSpawn = false;
-                        break;
-                    }
+    int attempts = 0;
+    do {
+        x = minX + rand.nextInt(Math.max(1, maxX - minX));
+        y = minY + rand.nextInt(Math.max(1, maxY - minY));
+
+        validSpawn = map.isWalkable(y, x);
+
+        // prevents spawning on the player
+        if (player != null && player.getX() == x && player.getY() == y) {
+            validSpawn = false;
+        }
+        // makes sure guards don't spawn on other guards
+        if (existingGuards != null) {
+            for (Guard g : existingGuards) {
+                if (g.getX() == x && g.getY() == y) {
+                    validSpawn = false;
+                    break;
                 }
             }
+        }
 
-        } while (!validSpawn);
+        attempts++;
+        // if no valid spot found in zone after 100 attempts, expand to full map
+        if (attempts > 100) {
+            x = rand.nextInt(map.getCols());
+            y = rand.nextInt(map.getRows());
+            validSpawn = map.isWalkable(y, x);
+        }
 
-        return new Guard(x, y, map, type, horizontalPatrol, patrolLength);
+    } while (!validSpawn);
+
+    return new Guard(x, y, map, type, horizontalPatrol, patrolLength);
     }
 
     /**
