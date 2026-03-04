@@ -8,6 +8,10 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import java.io.File;
+import java.io.IOException;
 
 import javax.swing.JPanel;
 
@@ -30,6 +34,11 @@ public class MapPanel extends JPanel {
     private String scoreText = "XXX";
 
     private java.util.List<Hazard> hazards = new java.util.ArrayList<>();
+
+    private BufferedImage handcuffsImg;
+    private BufferedImage ticketImg;
+    private BufferedImage bearImg;
+    private BufferedImage milkImg;
     
     public void setHazards(java.util.List<Hazard> hazards) {
         this.hazards = hazards;
@@ -41,6 +50,19 @@ public class MapPanel extends JPanel {
         int height = prisonMap.getRows() * CELL_SIZE + HUD_HEIGHT + 1;
         setPreferredSize(new Dimension(width, height));
         setBackground(new Color(214, 214, 214));
+
+        // Loading sprites from src/main/java/ execution directory
+        try { handcuffsImg = ImageIO.read(new File("../../res/Hazards/Handcuffs.png")); } 
+        catch (IOException e) { System.out.println("Missing: Handcuffs.png"); }
+
+        try { ticketImg = ImageIO.read(new File("../../res/Hazards/ParkingTicket.png")); } 
+        catch (IOException e) { System.out.println("Missing: ParkingTicket.png"); }
+
+        try { bearImg = ImageIO.read(new File("../../res/Hazards/Bear.png")); } 
+        catch (IOException e) { System.out.println("Missing: Bear.png"); }
+
+        try { milkImg = ImageIO.read(new File("../../res/Hazards/Milk.png")); } 
+        catch (IOException e) { System.out.println("Missing: Milk.png"); }
     }
 
     public void setTimeText(String timeText) {
@@ -245,11 +267,24 @@ public class MapPanel extends JPanel {
             if (hazard.isActive()) {
                 int hx = (int)hazard.getX() * CELL_SIZE;
                 int hy = (int)hazard.getY() * CELL_SIZE;
-                int size = CELL_SIZE - 6;
                 
-                // Draw a yellow triangle for hazards (can edit)
-                g2d.setColor(Color.YELLOW);
-                g2d.fillOval(hx + 3, hy + 3, size, size); 
+                BufferedImage imgToDraw = null;
+                
+                switch (hazard.getHazardType()) {
+                    case HANDCUFFS: imgToDraw = handcuffsImg; break;
+                    case PARKING_TICKET: imgToDraw = ticketImg; break;
+                    case BEAR: imgToDraw = bearImg; break;
+                    case SPOILED_MILK: imgToDraw = milkImg; break;
+                }
+                
+                if (imgToDraw != null) {
+                    g2d.drawImage(imgToDraw, hx, hy, CELL_SIZE, CELL_SIZE, null);
+                } else {
+                    // If images are missing, fallback to original yellow circles
+                    int size = CELL_SIZE - 6;
+                    g2d.setColor(Color.YELLOW);
+                    g2d.fillOval(hx + 3, hy + 3, size, size); 
+                }
             }
         }
     }
