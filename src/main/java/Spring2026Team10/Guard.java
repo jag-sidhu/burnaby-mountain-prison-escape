@@ -175,7 +175,7 @@ public class Guard extends Entity {
     private void chasePlayer(Player player) {
         int distanceToPlayer =
                 Math.abs(player.getX() - patrolStartX)
-                        + Math.abs(player.getY() - patrolStartY);
+                        + Math.abs(player.getY() - y);
 
         if (distanceToPlayer > agroRange) {
             state = GuardState.RETURNING;
