@@ -1,6 +1,13 @@
 package Spring2026Team10;
 
 public class Player extends Entity {
+    public enum MovementState {
+        IDLE, MOVING
+    }
+
+    public enum StatusState {
+        NORMAL, HANDS_TIED, SLOWED, INVERTED_CONTROLS
+    }
 
     //player's stats
     private int lives = 3;
@@ -47,7 +54,14 @@ public class Player extends Entity {
         score = 0;
         speedBoostActive = false;
         speedBoostDuration = 0;
+        handsTiedActive = false;
+        handsTiedDuration = 0;
+        isSlowed = false;
+        slowedDuration = 0;
+        controlsInverted = false;
+        invertedDuration = 0;
         speed = 0.25; // reset to slow default
+        moving = false;
     }
 
     //collisions with guards
@@ -123,5 +137,22 @@ public class Player extends Entity {
     public void invertControls(int duration) {
         controlsInverted = true;
         invertedDuration = duration;
+    }
+
+    public MovementState getMovementState() {
+        return isMoving() ? MovementState.MOVING : MovementState.IDLE;
+    }
+
+    public StatusState getStatusState() {
+        if (handsTiedActive) {
+            return StatusState.HANDS_TIED;
+        }
+        if (isSlowed) {
+            return StatusState.SLOWED;
+        }
+        if (controlsInverted) {
+            return StatusState.INVERTED_CONTROLS;
+        }
+        return StatusState.NORMAL;
     }
 }

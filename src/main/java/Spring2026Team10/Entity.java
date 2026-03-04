@@ -1,6 +1,10 @@
 package Spring2026Team10;
 
 public abstract class Entity {
+    public enum Direction {
+        UP, DOWN, LEFT, RIGHT
+    }
+
     //main entity logic, player and guard will extend this
     //tile position
     protected int x; //column
@@ -12,6 +16,8 @@ public abstract class Entity {
     protected double speed = 0.25; // default tiles per frame (reduced for slower movement)
 
     protected PrisonMap map;
+    protected Direction facing = Direction.DOWN;
+    protected boolean moving;
 
     public Entity(int startX, int startY, PrisonMap map) {
         this.x = startX;
@@ -28,8 +34,28 @@ public abstract class Entity {
         return y;
     }
 
+    public Direction getFacing() {
+        return facing;
+    }
+
+    public boolean isMoving() {
+        return moving;
+    }
+
     //movement
     public void move(double dx, double dy) {
+        if (dx > 0) {
+            facing = Direction.RIGHT;
+        } else if (dx < 0) {
+            facing = Direction.LEFT;
+        } else if (dy > 0) {
+            facing = Direction.DOWN;
+        } else if (dy < 0) {
+            facing = Direction.UP;
+        }
+
+        double startX = posX;
+        double startY = posY;
         double remainingX = dx * speed;
         double remainingY = dy * speed;
 
@@ -54,5 +80,7 @@ public abstract class Entity {
             remainingX -= stepX;
             remainingY -= stepY;
         }
+
+        moving = Math.abs(posX - startX) > 0.0001 || Math.abs(posY - startY) > 0.0001;
     }
 }

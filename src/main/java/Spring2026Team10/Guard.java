@@ -28,7 +28,7 @@ public class Guard extends Entity {
     public Guard(int startX, int startY, PrisonMap map, GuardType type, boolean horizontalPatrol, int patrolLength) {
         super(startX, startY, map);
         this.type = type;
-        this.state = (type == GuardType.PATROL) ? GuardState.PATROLLING : GuardState.IDLE;
+        this.state = (type == GuardType.PATROL) ? GuardState.PATROLLING : GuardState.CHASING;
 
         this.patrolStartX = startX;
         this.patrolStartY = startY;
@@ -133,4 +133,7 @@ public class Guard extends Entity {
     public GuardType getType() { return type; }
     public GuardState getState() { return state; }
     public void setState(GuardState state) { this.state = state; }
+    public boolean isAlertState() {
+        return state == GuardState.CHASING || state == GuardState.RETURNING;
+    }
 }

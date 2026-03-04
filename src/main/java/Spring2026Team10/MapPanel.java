@@ -12,8 +12,10 @@ import java.awt.RenderingHints;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.EnumMap;
+import java.util.Map;
 
 import javax.swing.JPanel;
 
@@ -40,11 +42,9 @@ public class MapPanel extends JPanel {
     private float cameraY = 0f;
 
     private java.util.List<Hazard> hazards = new java.util.ArrayList<>();
-
-    private BufferedImage handcuffsImg;
-    private BufferedImage ticketImg;
-    private BufferedImage bearImg;
-    private BufferedImage milkImg;
+    private final Map<Entity.Direction, BufferedImage[]> playerSprites = new EnumMap<>(Entity.Direction.class);
+    private final Map<Entity.Direction, BufferedImage[]> guardSprites = new EnumMap<>(Entity.Direction.class);
+    private final Map<HazardType, BufferedImage> hazardSprites = new EnumMap<>(HazardType.class);
     
     public void setHazards(java.util.List<Hazard> hazards) {
         this.hazards = hazards;
@@ -56,19 +56,7 @@ public class MapPanel extends JPanel {
         int height = prisonMap.getRows() * CELL_SIZE + HUD_HEIGHT + 1;
         setPreferredSize(new Dimension(width, height));
         setBackground(new Color(214, 214, 214));
-
-        // Loading sprites from src/main/java/ execution directory
-        try { handcuffsImg = ImageIO.read(new File("../../res/Hazards/Handcuffs.png")); } 
-        catch (IOException e) { System.out.println("Missing: Handcuffs.png"); }
-
-        try { ticketImg = ImageIO.read(new File("../../res/Hazards/ParkingTicket.png")); } 
-        catch (IOException e) { System.out.println("Missing: ParkingTicket.png"); }
-
-        try { bearImg = ImageIO.read(new File("../../res/Hazards/Bear.png")); } 
-        catch (IOException e) { System.out.println("Missing: Bear.png"); }
-
-        try { milkImg = ImageIO.read(new File("../../res/Hazards/Milk.png")); } 
-        catch (IOException e) { System.out.println("Missing: Milk.png"); }
+        loadSprites();
     }
 
     public void setTimeText(String timeText) {
@@ -83,6 +71,57 @@ public class MapPanel extends JPanel {
 
     public PrisonMap getPrisonMap() {
         return prisonMap;
+    }
+
+    private void loadSprites() {
+        playerSprites.put(Entity.Direction.DOWN, loadFrames("/sprites/player/Front_1.png", "/sprites/player/Front_2.png"));
+        playerSprites.put(Entity.Direction.UP, loadFrames("/sprites/player/Back_1.png", "/sprites/player/Back_2.png"));
+        playerSprites.put(Entity.Direction.LEFT, loadFrames("/sprites/player/Left_1.png", "/sprites/player/Left_2.png"));
+        playerSprites.put(Entity.Direction.RIGHT, loadFrames("/sprites/player/Right_1.png", "/sprites/player/Right_2.png"));
+
+        guardSprites.put(Entity.Direction.DOWN, loadFrames("/sprites/guard/Guard_Front_1.png", "/sprites/guard/Guard_Front_2.png"));
+        guardSprites.put(Entity.Direction.UP, loadFrames("/sprites/guard/Guard_Back_1.png", "/sprites/guard/Guard_Back_2.png"));
+        guardSprites.put(Entity.Direction.LEFT, loadFrames("/sprites/guard/Guard_Left_1.png", "/sprites/guard/Guard_Left_2.png"));
+        guardSprites.put(Entity.Direction.RIGHT, loadFrames("/sprites/guard/Guard_Right_1.png", "/sprites/guard/Guard_Right_2.png"));
+
+        hazardSprites.put(HazardType.HANDCUFFS, loadSprite("/sprites/hazards/Handcuffs.png"));
+        hazardSprites.put(HazardType.PARKING_TICKET, loadSprite("/sprites/hazards/ParkingTicket.png"));
+        hazardSprites.put(HazardType.BEAR, loadSprite("/sprites/hazards/Bear.png"));
+        hazardSprites.put(HazardType.SPOILED_MILK, loadSprite("/sprites/hazards/Milk.png"));
+    }
+
+    private BufferedImage[] loadFrames(String frame1, String frame2) {
+        return new BufferedImage[]{loadSprite(frame1), loadSprite(frame2)};
+    }
+
+    private BufferedImage loadSprite(String resourcePath) {
+        try (InputStream in = getClass().getResourceAsStream(resourcePath)) {
+            if (in == null) {
+                System.out.println("Missing: " + resourcePath);
+                return null;
+            }
+            return ImageIO.read(in);
+        } catch (IOException e) {
+            System.out.println("Missing: " + resourcePath);
+            return null;
+        }
+    }
+
+    private BufferedImage selectDirectionalSprite(Map<Entity.Direction, BufferedImage[]> spriteSet, Entity.Direction facing, boolean moving) {
+        Entity.Direction direction = (facing == null) ? Entity.Direction.DOWN : facing;
+        BufferedImage[] frames = spriteSet.get(direction);
+        if (frames == null) {
+            frames = spriteSet.get(Entity.Direction.DOWN);
+        }
+        if (frames == null || frames.length == 0) {
+            return null;
+        }
+
+        int frameIndex = moving ? (int) ((System.currentTimeMillis() / 180L) % 2L) : 0;
+        if (frameIndex >= frames.length || frames[frameIndex] == null) {
+            frameIndex = 0;
+        }
+        return frames[frameIndex];
     }
 
     @Override
@@ -248,9 +287,30 @@ public class MapPanel extends JPanel {
         if (player == null) return;
         int px = player.getX() * CELL_SIZE;
         int py = player.getY() * CELL_SIZE;
-        int size = CELL_SIZE - 4;
-        g2d.setColor(Color.BLUE);
-        g2d.fillOval(px + 2, py + 2, size, size);
+        BufferedImage sprite = selectDirectionalSprite(playerSprites, player.getFacing(), player.getMovementState() == Player.MovementState.MOVING);
+
+        if (sprite != null) {
+            g2d.drawImage(sprite, px, py, CELL_SIZE, CELL_SIZE, null);
+        } else {
+            int size = CELL_SIZE - 4;
+            g2d.setColor(Color.BLUE);
+            g2d.fillOval(px + 2, py + 2, size, size);
+        }
+
+        Player.StatusState statusState = player.getStatusState();
+        if (statusState != Player.StatusState.NORMAL) {
+            Color statusColor = switch (statusState) {
+                case HANDS_TIED -> new Color(190, 190, 190);
+                case SLOWED -> new Color(90, 190, 255);
+                case INVERTED_CONTROLS -> new Color(210, 120, 255);
+                default -> null;
+            };
+            if (statusColor != null) {
+                g2d.setColor(statusColor);
+                g2d.setStroke(new BasicStroke(1.5f));
+                g2d.drawOval(px + 1, py + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+            }
+        }
     }
 
     private void paintGuards(Graphics2D g2d) {
@@ -258,14 +318,25 @@ public class MapPanel extends JPanel {
         for (Guard guard : guards) {
             int gx = guard.getX() * CELL_SIZE;
             int gy = guard.getY() * CELL_SIZE;
-            int size = CELL_SIZE - 4;
-            // choose color based on type
-            if (guard.getType() == Guard.GuardType.PATROL) {
-                g2d.setColor(Color.ORANGE);
+            BufferedImage sprite = selectDirectionalSprite(guardSprites, guard.getFacing(), guard.isMoving());
+
+            if (sprite != null) {
+                g2d.drawImage(sprite, gx, gy, CELL_SIZE, CELL_SIZE, null);
             } else {
-                g2d.setColor(Color.RED);
+                int size = CELL_SIZE - 4;
+                if (guard.getType() == Guard.GuardType.PATROL) {
+                    g2d.setColor(Color.ORANGE);
+                } else {
+                    g2d.setColor(Color.RED);
+                }
+                g2d.fillOval(gx + 2, gy + 2, size, size);
             }
-            g2d.fillOval(gx + 2, gy + 2, size, size);
+
+            if (guard.isAlertState()) {
+                g2d.setColor(new Color(255, 70, 70, 220));
+                g2d.setStroke(new BasicStroke(1.5f));
+                g2d.drawOval(gx + 1, gy + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+            }
         }
     }
 
@@ -284,16 +355,9 @@ public class MapPanel extends JPanel {
             if (hazard.isActive()) {
                 int hx = (int)hazard.getX() * CELL_SIZE;
                 int hy = (int)hazard.getY() * CELL_SIZE;
-                
-                BufferedImage imgToDraw = null;
-                
-                switch (hazard.getHazardType()) {
-                    case HANDCUFFS: imgToDraw = handcuffsImg; break;
-                    case PARKING_TICKET: imgToDraw = ticketImg; break;
-                    case BEAR: imgToDraw = bearImg; break;
-                    case SPOILED_MILK: imgToDraw = milkImg; break;
-                }
-                
+
+                BufferedImage imgToDraw = hazardSprites.get(hazard.getHazardType());
+
                 if (imgToDraw != null) {
                     g2d.drawImage(imgToDraw, hx, hy, CELL_SIZE, CELL_SIZE, null);
                 } else {
