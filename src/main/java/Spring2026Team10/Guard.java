@@ -2,9 +2,6 @@ package Spring2026Team10;
 
 import java.util.Random;
 import java.util.List;
-import java.awt.image.BufferedImage;
-import javax.imageio.ImageIO;
-import java.io.IOException;
 
 public class Guard extends Entity {
 
@@ -13,40 +10,36 @@ public class Guard extends Entity {
     }
 
     public enum GuardState {
-        IDLE, //standing still
-        PATROLLING, //moving along path
-        CHASING, //following player, cant move horizontally
-        RETURNING //going back to patrol after player moves too far away
+        IDLE, // standing still
+        PATROLLING, // moving along path
+        CHASING, // following player
+        RETURNING // going back to patrol after player moves too far away
     }
 
     private GuardType type;
     private GuardState state;
 
-    // patrol info
+    //patrol info
     private int patrolStartX, patrolStartY;
     private int patrolEndX, patrolEndY;
-    private boolean patrolForward = true; //direction along patrol path
-    private boolean horizontalPatrol; //true = horizontal false = vertical
+    private boolean patrolForward = true; // direction along patrol path
+    private boolean horizontalPatrol; // true = horizontal, false = vertical
 
-    // chase info
-    private int agroRange = 5; //number of tiles players must be within to trigger chase
+    //chase info
+    private int agroRange = 5; // number of tiles player must be within to trigger chase
 
-    //guard sprite + animation
-    private BufferedImage[] walkUp = new BufferedImage[2];
-    private BufferedImage[] walkDown = new BufferedImage[2];
-    private BufferedImage[] walkLeft = new BufferedImage[2];
-    private BufferedImage[] walkRight = new BufferedImage[2];
-
-    private BufferedImage currentSprite;
-
-    private int animationFrame = 0;
-    private int animationCounter = 0;
-    private final int animationSpeed = 10;
-
-    private int lastDx = 0;
-    private int lastDy = 1; //default facing down
-
-    //random spawn area for the guards
+    /**
+     * spawns a guard at a random walkable tile on the map
+     * makes sure the guard doesn't spawn on the player or other guards
+     *
+     * @param map              the prison map
+     * @param type             the guard type (PATROL or CHASE)
+     * @param existingGuards   list of already spawned guards to avoid overlap
+     * @param player           the player to avoid spawning on
+     * @param horizontalPatrol true for horizontal patrol, false for vertical
+     * @param patrolLength     number of tiles in the patrol path
+     * @return a new Guard at a valid random position
+     */
     public static Guard spawnRandomGuard(PrisonMap map, GuardType type, List<Guard> existingGuards, Player player, boolean horizontalPatrol, int patrolLength) {
         Random rand = new Random();
         int x, y;
@@ -57,9 +50,9 @@ public class Guard extends Entity {
             y = rand.nextInt(map.getRows());
 
             validSpawn = map.isWalkable(y, x);
-            
+
             //prevents spawning on the player
-            if (player != null && player.getX() == x && player.getY() == y){
+            if (player != null && player.getX() == x && player.getY() == y) {
                 validSpawn = false;
             }
             //makes sure guards don't spawn on other guards
@@ -77,11 +70,20 @@ public class Guard extends Entity {
         return new Guard(x, y, map, type, horizontalPatrol, patrolLength);
     }
 
-    //constructor
+    /**
+     * constructs a Guard at the given position
+     *
+     * @param startX           starting column
+     * @param startY           starting row
+     * @param map              the prison map
+     * @param type             the guard type (PATROL or CHASE)
+     * @param horizontalPatrol true for horizontal patrol, false for vertical
+     * @param patrolLength     number of tiles in the patrol path
+     */
     public Guard(int startX, int startY, PrisonMap map, GuardType type, boolean horizontalPatrol, int patrolLength) {
         super(startX, startY, map);
         this.type = type;
-        this.state = (type == GuardType.PATROL)? GuardState.PATROLLING: GuardState.CHASING;
+        this.state = (type == GuardType.PATROL) ? GuardState.PATROLLING : GuardState.CHASING;
 
         this.patrolStartX = startX;
         this.patrolStartY = startY;
@@ -105,40 +107,20 @@ public class Guard extends Entity {
             }
             patrolEndX = startX;
         }
-
-        loadSprites();
     }
 
-    //loads sprites
-    private void loadSprites() {
-        try {
-            walkUp[0] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/Guard_Back_1.png"));
-            walkUp[1] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/Guard_Back_2.png"));
-
-            walkDown[0] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/Guard_Front_1.png"));
-            walkDown[1] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/Guard_Front_2.png"));
-
-            walkLeft[0] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/Guard_Left_1.png"));
-            walkLeft[1] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/Guard_Left_2.png"));
-
-            walkRight[0] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/Guard_Right_1.png"));
-            walkRight[1] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/Guard_Right_2.png"));
-
-            currentSprite = walkDown[0];
-
-        } catch (IOException | IllegalArgumentException e) {
-            System.out.println("Guard sprites failed to load.");
-        }
-    }
-
-    //update method to be called every frame, handles state transitions and movement
+    /**
+     * updates the guard's state and position each frame
+     * handles transitions between patrolling, chasing, and returning states.
+     *
+     * @param player the player entity to track
+     */
     public void update(Player player) {
         switch (state) {
             case PATROLLING -> {
-                //checks if player is within agro range
                 int distanceToPlayer =
-                        Math.abs(player.getX() - patrolStartX)
-                                + Math.abs(player.getY() - patrolStartY);
+                        Math.abs(player.getX() - x)
+                                + Math.abs(player.getY() - y);
 
                 if (distanceToPlayer <= agroRange)
                     state = GuardState.CHASING;
@@ -151,7 +133,9 @@ public class Guard extends Entity {
         }
     }
 
-    //movement methods
+    /**
+     * moves the guard along its patrol path, reversing direction at its endpoints
+     */
     private void patrolMove() {
         int dx = 0, dy = 0;
 
@@ -169,16 +153,29 @@ public class Guard extends Entity {
             else if (y + dy < patrolStartY) patrolForward = true;
         }
 
-        animateAndMove(dx, dy);
+        move(dx, dy);
     }
 
+    /**
+     * chases the player if within agro range
+     * causes the player to lose a life if the guard catches them
+     * transitions to RETURNING if the player moves out of range
+     *
+     * @param player the player to chase
+     */
     private void chasePlayer(Player player) {
         int distanceToPlayer =
-                Math.abs(player.getX() - patrolStartX)
+                Math.abs(player.getX() - x)
                         + Math.abs(player.getY() - y);
 
         if (distanceToPlayer > agroRange) {
             state = GuardState.RETURNING;
+            return;
+        }
+
+        //catch the player if on the same tile
+        if (x == player.getX() && y == player.getY()) {
+            player.loseLife();
             return;
         }
 
@@ -192,9 +189,13 @@ public class Guard extends Entity {
         if (!map.isWalkable(y, x + dx)) dx = 0;
         if (!map.isWalkable(y + dy, x)) dy = 0;
 
-        animateAndMove(dx, dy);
+        move(dx, dy);
     }
 
+    /**
+     * moves the guard back to its patrol start position
+     * transitions to PATROLLING once the start position is reached
+     */
     private void returnToPatrol() {
         int dx = 0, dy = 0;
 
@@ -207,7 +208,7 @@ public class Guard extends Entity {
         if (!map.isWalkable(y, x + dx)) dx = 0;
         if (!map.isWalkable(y + dy, x)) dy = 0;
 
-        animateAndMove(dx, dy);
+        move(dx, dy);
 
         if (x == patrolStartX && y == patrolStartY) {
             state = GuardState.PATROLLING;
@@ -215,34 +216,26 @@ public class Guard extends Entity {
         }
     }
 
-    //handling the animation
-    private void animateAndMove(int dx, int dy) {
-
-        if (dx != 0 || dy != 0) {
-            lastDx = dx;
-            lastDy = dy;
-
-            animationCounter++;
-            if (animationCounter >= animationSpeed) {
-                animationCounter = 0;
-                animationFrame = (animationFrame + 1) % 2;
-            }
-
-            if (lastDy == -1)
-                currentSprite = walkUp[animationFrame];
-            else if (lastDy == 1)
-                currentSprite = walkDown[animationFrame];
-            else if (lastDx == -1)
-                currentSprite = walkLeft[animationFrame];
-            else if (lastDx == 1)
-                currentSprite = walkRight[animationFrame];
-        }
-
-        move(dx, dy);
+    /**
+     * resets the guard to its spawn position and patrolling state
+     * should be called when the game is reset
+     */
+    public void reset() {
+        x = patrolStartX;
+        y = patrolStartY;
+        posX = patrolStartX;
+        posY = patrolStartY;
+        state = GuardState.PATROLLING;
+        patrolForward = true;
     }
 
-    public BufferedImage getSprite() {
-        return currentSprite;
+    /**
+     * sets the agro range of the guard, which determines how close the player must be to trigger a chase
+     *
+     * @param range number of tiles the player must be within to trigger a chase
+     */
+    public void setAgroRange(int range) {
+        this.agroRange = range;
     }
 
     //getters
