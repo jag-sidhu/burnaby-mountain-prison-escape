@@ -87,6 +87,7 @@ public class Game implements Runnable {
         changeState(GameState.MENU);
         gameThread = new Thread(this);
         gameThread.start();
+
     }
 
     public void update() {
