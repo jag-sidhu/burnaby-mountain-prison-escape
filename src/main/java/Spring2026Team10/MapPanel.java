@@ -40,6 +40,7 @@ public class MapPanel extends JPanel {
     private Game game;
     private Player player;
     private java.util.List<Guard> guards = new java.util.ArrayList<>();
+    private java.util.List<java.awt.Point> guardSpawns = new java.util.ArrayList<>();
     private String timeText = "XXX";
     private String scoreText = "XXX";
     private float cameraX = 0f;
@@ -50,6 +51,13 @@ public class MapPanel extends JPanel {
     private final Map<Entity.Direction, BufferedImage[]> guardSprites = new EnumMap<>(Entity.Direction.class);
     private final Map<HazardType, BufferedImage> hazardSprites = new EnumMap<>(HazardType.class);
     
+    public void addGuardSpawn(int col, int row) {
+        guardSpawns.add(new java.awt.Point(col, row));
+    }
+    
+    public java.util.List<java.awt.Point> getGuardSpawns() {
+        return guardSpawns;
+    }
     public void setHazards(java.util.List<Hazard> hazards) {
         this.hazards = hazards;
     }
