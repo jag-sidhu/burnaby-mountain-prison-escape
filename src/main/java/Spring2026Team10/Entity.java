@@ -33,6 +33,12 @@ public abstract class Entity {
     public int getY() {
         return y;
     }
+    public double getPosX() {
+        return posX;
+    }
+    public double getPosY() {
+        return posY;
+    }
 
     public Direction getFacing() {
         return facing;
