@@ -7,7 +7,9 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RadialGradientPaint;
 import java.awt.RenderingHints;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import java.io.File;
@@ -26,12 +28,16 @@ public class MapPanel extends JPanel {
     private static final Color HUD_BOX_BG = new Color(250, 250, 250);
     private static final int UI_FONT_SIZE = Math.max(12, Math.round(CELL_SIZE * 1.2f));
     private static final float BORDER_STROKE = Math.max(1.25f, CELL_SIZE * 0.125f);
+    private static final float CAMERA_ZOOM = 1.8f;
+    private static final float VISIBILITY_RADIUS_TILES = 8.0f;
 
     private final PrisonMap prisonMap;
     private Player player;
     private java.util.List<Guard> guards = new java.util.ArrayList<>();
     private String timeText = "XXX";
     private String scoreText = "XXX";
+    private float cameraX = 0f;
+    private float cameraY = 0f;
 
     private java.util.List<Hazard> hazards = new java.util.ArrayList<>();
 
@@ -85,14 +91,27 @@ public class MapPanel extends JPanel {
         Graphics2D g2d = (Graphics2D) g.create();
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        paintTiles(g2d);
-        paintStartEndLabels(g2d); // markers drawn over tiles
-        paintCoins(g2d);
-        paintGrid(g2d);
-        paintPlayer(g2d);         // player & guards on top of markers
-        paintHazards(g2d);
-        paintGuards(g2d);
-        paintBottomHud(g2d);
+        int mapViewWidth = getWidth();
+        int mapViewHeight = Math.max(1, getHeight() - HUD_HEIGHT);
+
+        updateCamera(mapViewWidth, mapViewHeight);
+
+        Graphics2D worldG2d = (Graphics2D) g2d.create();
+        worldG2d.setClip(0, 0, mapViewWidth, mapViewHeight);
+        worldG2d.scale(CAMERA_ZOOM, CAMERA_ZOOM);
+        worldG2d.translate(-cameraX, -cameraY);
+
+        paintTiles(worldG2d);
+        paintStartEndLabels(worldG2d); // markers drawn over tiles
+        paintCoins(worldG2d);
+        paintGrid(worldG2d);
+        paintPlayer(worldG2d);         // player & guards on top of markers
+        paintHazards(worldG2d);
+        paintGuards(worldG2d);
+        worldG2d.dispose();
+
+        paintFogOfWar(g2d, mapViewWidth, mapViewHeight);
+        paintBottomHud(g2d, mapViewWidth, mapViewHeight);
 
         g2d.dispose();
     }
@@ -128,23 +147,21 @@ public class MapPanel extends JPanel {
         g2d.drawRect(0, 0, maxX, maxY);
     }
 
-    private void paintBottomHud(Graphics2D g2d) {
-        int maxX = prisonMap.getCols() * CELL_SIZE;
-        int mapMaxY = prisonMap.getRows() * CELL_SIZE;
-        int hudY = mapMaxY;
+    private void paintBottomHud(Graphics2D g2d, int mapViewWidth, int mapViewHeight) {
+        int hudY = mapViewHeight;
 
         g2d.setColor(HUD_BG);
-        g2d.fillRect(0, hudY, maxX, HUD_HEIGHT);
+        g2d.fillRect(0, hudY, mapViewWidth, HUD_HEIGHT);
 
         g2d.setColor(GRID_COLOR);
         g2d.setStroke(new BasicStroke(1.5f));
-        g2d.drawRect(0, hudY, maxX, HUD_HEIGHT);
+        g2d.drawRect(0, hudY, mapViewWidth, HUD_HEIGHT);
 
         int labelWidth = CELL_SIZE * 6;
         int valueWidth = CELL_SIZE * 5;
         int gapWidth = CELL_SIZE * 2;
         int totalWidth = (labelWidth * 2) + (valueWidth * 2) + gapWidth;
-        int startX = (maxX - totalWidth) / 2;
+        int startX = (mapViewWidth - totalWidth) / 2;
 
         drawHudBox(g2d, startX, hudY, labelWidth, "Time");
         drawHudBox(g2d, startX + labelWidth, hudY, valueWidth, timeText);
@@ -287,5 +304,49 @@ public class MapPanel extends JPanel {
                 }
             }
         }
+    }
+
+    private void updateCamera(int mapViewWidth, int mapViewHeight) {
+        if (player == null) {
+            cameraX = 0f;
+            cameraY = 0f;
+            return;
+        }
+
+        float viewWidthInWorld = mapViewWidth / CAMERA_ZOOM;
+        float viewHeightInWorld = mapViewHeight / CAMERA_ZOOM;
+        float playerCenterX = (player.getX() * CELL_SIZE) + (CELL_SIZE / 2f);
+        float playerCenterY = (player.getY() * CELL_SIZE) + (CELL_SIZE / 2f);
+        cameraX = playerCenterX - (viewWidthInWorld / 2f);
+        cameraY = playerCenterY - (viewHeightInWorld / 2f);
+    }
+
+    private void paintFogOfWar(Graphics2D g2d, int mapViewWidth, int mapViewHeight) {
+        if (player == null) {
+            g2d.setColor(new Color(0, 0, 0, 235));
+            g2d.fillRect(0, 0, mapViewWidth, mapViewHeight);
+            return;
+        }
+
+        float playerCenterX = (player.getX() * CELL_SIZE) + (CELL_SIZE / 2f);
+        float playerCenterY = (player.getY() * CELL_SIZE) + (CELL_SIZE / 2f);
+        float playerScreenX = (playerCenterX - cameraX) * CAMERA_ZOOM;
+        float playerScreenY = (playerCenterY - cameraY) * CAMERA_ZOOM;
+        float visibilityRadius = CELL_SIZE * CAMERA_ZOOM * VISIBILITY_RADIUS_TILES;
+
+        RadialGradientPaint fog = new RadialGradientPaint(
+                new Point2D.Float(playerScreenX, playerScreenY),
+                visibilityRadius,
+                new float[]{0f, 0.5f, 0.85f, 1f},
+                new Color[]{
+                        new Color(0, 0, 0, 0),
+                        new Color(0, 0, 0, 190),
+                        new Color(0, 0, 0, 230),
+                        new Color(0, 0, 0, 250)
+                }
+        );
+
+        g2d.setPaint(fog);
+        g2d.fillRect(0, 0, mapViewWidth, mapViewHeight);
     }
 }
