@@ -112,17 +112,17 @@ public class Guard extends Entity {
     //loads sprites
     private void loadSprites() {
         try {
-            walkUp[0] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/guard_back_1.png"));
-            walkUp[1] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/guard_back_2.png"));
+            walkUp[0] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/Guard_Back_1.png"));
+            walkUp[1] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/Guard_Back_2.png"));
 
-            walkDown[0] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/guard_front_1.png"));
-            walkDown[1] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/guard_front_2.png"));
+            walkDown[0] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/Guard_Front_1.png"));
+            walkDown[1] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/Guard_Front_2.png"));
 
-            walkLeft[0] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/guard_left_1.png"));
-            walkLeft[1] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/guard_left_2.png"));
+            walkLeft[0] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/Guard_Left_1.png"));
+            walkLeft[1] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/Guard_Left_2.png"));
 
-            walkRight[0] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/guard_right_1.png"));
-            walkRight[1] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/guard_right_2.png"));
+            walkRight[0] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/Guard_Right_1.png"));
+            walkRight[1] = ImageIO.read(getClass().getResourceAsStream("/sprites/guard/Guard_Right_2.png"));
 
             currentSprite = walkDown[0];
 
