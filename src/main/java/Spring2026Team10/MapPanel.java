@@ -8,7 +8,10 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RadialGradientPaint;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
@@ -30,10 +33,11 @@ public class MapPanel extends JPanel {
     private static final Color HUD_BOX_BG = new Color(250, 250, 250);
     private static final int UI_FONT_SIZE = Math.max(12, Math.round(CELL_SIZE * 1.2f));
     private static final float BORDER_STROKE = Math.max(1.25f, CELL_SIZE * 0.125f);
-    private static final float CAMERA_ZOOM = 1.8f;
-    private static final float VISIBILITY_RADIUS_TILES = 8.0f;
+    private static final float CAMERA_ZOOM = 3.0f;
+    private static final float VISIBILITY_RADIUS_TILES = 10.5f;
 
     private final PrisonMap prisonMap;
+    private Game game;
     private Player player;
     private java.util.List<Guard> guards = new java.util.ArrayList<>();
     private String timeText = "XXX";
@@ -57,6 +61,12 @@ public class MapPanel extends JPanel {
         setPreferredSize(new Dimension(width, height));
         setBackground(new Color(214, 214, 214));
         loadSprites();
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                handleScreenClick(e.getX(), e.getY());
+            }
+        });
     }
 
     public void setTimeText(String timeText) {
@@ -71,6 +81,11 @@ public class MapPanel extends JPanel {
 
     public PrisonMap getPrisonMap() {
         return prisonMap;
+    }
+
+    public void setGame(Game game) {
+        this.game = game;
+        repaint();
     }
 
     private void loadSprites() {
@@ -132,6 +147,7 @@ public class MapPanel extends JPanel {
 
         int mapViewWidth = getWidth();
         int mapViewHeight = Math.max(1, getHeight() - HUD_HEIGHT);
+        GameState currentState = game == null ? GameState.PLAYING : game.getState();
 
         updateCamera(mapViewWidth, mapViewHeight);
 
@@ -149,9 +165,11 @@ public class MapPanel extends JPanel {
         paintGuards(worldG2d);
         worldG2d.dispose();
 
-        paintFogOfWar(g2d, mapViewWidth, mapViewHeight);
+        if (currentState == GameState.PLAYING || currentState == GameState.FROZEN) {
+            paintFogOfWar(g2d, mapViewWidth, mapViewHeight);
+        }
         paintBottomHud(g2d, mapViewWidth, mapViewHeight);
-
+        paintOverlay(g2d, currentState);
         g2d.dispose();
     }
 
@@ -366,6 +384,176 @@ public class MapPanel extends JPanel {
                     g2d.setColor(Color.YELLOW);
                     g2d.fillOval(hx + 3, hy + 3, size, size); 
                 }
+            }
+        }
+    }
+
+    private void paintOverlay(Graphics2D g2d, GameState state) {
+        if (state == GameState.MENU) {
+            paintMenuOverlay(g2d);
+        } else if (state == GameState.FROZEN) {
+            paintPauseOverlay(g2d);
+        } else if (state == GameState.GAME_OVER) {
+            paintEndOverlay(g2d, "You Lost");
+        } else if (state == GameState.LEVEL_COMPLETE) {
+            paintEndOverlay(g2d, "You Win");
+        }
+    }
+
+    private void paintMenuOverlay(Graphics2D g2d) {
+        int centerX = getWidth() / 2;
+        int centerY = (getHeight() - HUD_HEIGHT) / 2;
+
+        g2d.setColor(new Color(0, 0, 0, 145));
+        g2d.fillRect(0, 0, getWidth(), getHeight());
+
+        g2d.setColor(Color.WHITE);
+        g2d.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 34));
+        drawCenteredText(g2d, "Escape From The Prison", centerX, centerY - 120);
+
+        drawButton(g2d, getMenuStartButtonRect(), "Start");
+        drawButton(g2d, getMenuExitButtonRect(), "Exit");
+
+        Rectangle leftRect = getDifficultyLeftButtonRect();
+        Rectangle rightRect = getDifficultyRightButtonRect();
+        Rectangle valueRect = getDifficultyValueRect();
+        drawButton(g2d, leftRect, "<");
+        drawButton(g2d, rightRect, ">");
+
+        g2d.setColor(new Color(240, 240, 240, 230));
+        g2d.fillRoundRect(valueRect.x, valueRect.y, valueRect.width, valueRect.height, 10, 10);
+        g2d.setColor(new Color(40, 40, 40));
+        g2d.drawRoundRect(valueRect.x, valueRect.y, valueRect.width, valueRect.height, 10, 10);
+        g2d.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 15));
+        String difficultyText;
+        if (game == null) {
+            difficultyText = "Easy (3 lives)";
+        } else {
+            difficultyText = game.getDifficultyLabel() + " (" + game.getDifficulty().getLives() + " lives)";
+        }
+        drawCenteredText(g2d, difficultyText, valueRect.x + (valueRect.width / 2), valueRect.y + (valueRect.height / 2));
+    }
+
+    private void paintEndOverlay(Graphics2D g2d, String title) {
+        int centerX = getWidth() / 2;
+        int centerY = (getHeight() - HUD_HEIGHT) / 2;
+
+        g2d.setColor(new Color(0, 0, 0, 145));
+        g2d.fillRect(0, 0, getWidth(), getHeight());
+
+        g2d.setColor(Color.WHITE);
+        g2d.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 34));
+        drawCenteredText(g2d, title, centerX, centerY - 90);
+
+        drawButton(g2d, getEndRestartButtonRect(), "Restart");
+        drawButton(g2d, getEndMenuButtonRect(), "Exit To Menu");
+    }
+
+    private void paintPauseOverlay(Graphics2D g2d) {
+        int centerX = getWidth() / 2;
+        int centerY = (getHeight() - HUD_HEIGHT) / 2;
+
+        g2d.setColor(new Color(0, 0, 0, 145));
+        g2d.fillRect(0, 0, getWidth(), getHeight());
+
+        g2d.setColor(Color.WHITE);
+        g2d.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 34));
+        drawCenteredText(g2d, "Paused", centerX, centerY - 90);
+
+        drawButton(g2d, getPauseResumeButtonRect(), "Resume");
+        drawButton(g2d, getPauseMenuButtonRect(), "Exit To Menu");
+    }
+
+    private void drawButton(Graphics2D g2d, Rectangle rect, String text) {
+        g2d.setColor(new Color(240, 240, 240, 230));
+        g2d.fillRoundRect(rect.x, rect.y, rect.width, rect.height, 10, 10);
+        g2d.setColor(new Color(40, 40, 40));
+        g2d.drawRoundRect(rect.x, rect.y, rect.width, rect.height, 10, 10);
+        g2d.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
+        drawCenteredText(g2d, text, rect.x + (rect.width / 2), rect.y + (rect.height / 2));
+    }
+
+    private Rectangle getMenuStartButtonRect() {
+        int centerX = getWidth() / 2;
+        int centerY = (getHeight() - HUD_HEIGHT) / 2;
+        return new Rectangle(centerX - 90, centerY - 25, 180, 40);
+    }
+
+    private Rectangle getMenuExitButtonRect() {
+        int centerX = getWidth() / 2;
+        int centerY = (getHeight() - HUD_HEIGHT) / 2;
+        return new Rectangle(centerX - 90, centerY + 25, 180, 40);
+    }
+
+    private Rectangle getDifficultyLeftButtonRect() {
+        int centerX = getWidth() / 2;
+        int centerY = (getHeight() - HUD_HEIGHT) / 2;
+        return new Rectangle(centerX - 140, centerY + 85, 40, 34);
+    }
+
+    private Rectangle getDifficultyValueRect() {
+        int centerX = getWidth() / 2;
+        int centerY = (getHeight() - HUD_HEIGHT) / 2;
+        return new Rectangle(centerX - 95, centerY + 85, 190, 34);
+    }
+
+    private Rectangle getDifficultyRightButtonRect() {
+        int centerX = getWidth() / 2;
+        int centerY = (getHeight() - HUD_HEIGHT) / 2;
+        return new Rectangle(centerX + 100, centerY + 85, 40, 34);
+    }
+
+    private Rectangle getEndRestartButtonRect() {
+        int centerX = getWidth() / 2;
+        int centerY = (getHeight() - HUD_HEIGHT) / 2;
+        return new Rectangle(centerX - 90, centerY - 10, 180, 40);
+    }
+
+    private Rectangle getEndMenuButtonRect() {
+        int centerX = getWidth() / 2;
+        int centerY = (getHeight() - HUD_HEIGHT) / 2;
+        return new Rectangle(centerX - 90, centerY + 40, 180, 40);
+    }
+
+    private Rectangle getPauseResumeButtonRect() {
+        int centerX = getWidth() / 2;
+        int centerY = (getHeight() - HUD_HEIGHT) / 2;
+        return new Rectangle(centerX - 90, centerY - 10, 180, 40);
+    }
+
+    private Rectangle getPauseMenuButtonRect() {
+        int centerX = getWidth() / 2;
+        int centerY = (getHeight() - HUD_HEIGHT) / 2;
+        return new Rectangle(centerX - 90, centerY + 40, 180, 40);
+    }
+
+    private void handleScreenClick(int x, int y) {
+        if (game == null) {
+            return;
+        }
+
+        GameState state = game.getState();
+        if (state == GameState.MENU) {
+            if (getMenuStartButtonRect().contains(x, y)) {
+                game.startMatch();
+            } else if (getMenuExitButtonRect().contains(x, y)) {
+                game.exitGame();
+            } else if (getDifficultyLeftButtonRect().contains(x, y)) {
+                game.decreaseDifficulty();
+            } else if (getDifficultyRightButtonRect().contains(x, y)) {
+                game.increaseDifficulty();
+            }
+        } else if (state == GameState.FROZEN) {
+            if (getPauseResumeButtonRect().contains(x, y)) {
+                game.resumeMatch();
+            } else if (getPauseMenuButtonRect().contains(x, y)) {
+                game.returnToMenu();
+            }
+        } else if (state == GameState.GAME_OVER || state == GameState.LEVEL_COMPLETE) {
+            if (getEndRestartButtonRect().contains(x, y)) {
+                game.restartMatch();
+            } else if (getEndMenuButtonRect().contains(x, y)) {
+                game.returnToMenu();
             }
         }
     }

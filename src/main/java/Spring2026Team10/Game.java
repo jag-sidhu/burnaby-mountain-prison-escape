@@ -9,7 +9,31 @@ import java.util.List;
 import javax.swing.Timer;
 
 public class Game implements Runnable {
+    public enum Difficulty {
+        EASY("Easy", 3),
+        MEDIUM("Medium", 2),
+        HARD("Hard", 1);
+
+        private final String label;
+        private final int lives;
+
+        Difficulty(String label, int lives) {
+            this.label = label;
+            this.lives = lives;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public int getLives() {
+            return lives;
+        }
+    }
+
     private static final int COINS_PER_MATCH = 20;
+    private final Difficulty[] difficulties = Difficulty.values();
+    private int difficultyIndex = 0;
     private GameState state;
     private final Player player;
     private final PrisonMap map;
@@ -22,6 +46,7 @@ public class Game implements Runnable {
     KeyHandler keyHandler = new KeyHandler();
     private final List<Hazard> hazards;
     private long matchStartMillis;
+    private boolean escPressedLastFrame = false;
 
     //Set FPS
     int FPS = 30;
@@ -43,6 +68,7 @@ public class Game implements Runnable {
         mapPanel.setPlayer(player);
         mapPanel.setGuards(guards);
         mapPanel.setHazards(hazards);
+        mapPanel.setGame(this);
 
         //add key listener to mapPanel and focus on receiving key events
         mapPanel.addKeyListener(keyHandler);
@@ -52,32 +78,44 @@ public class Game implements Runnable {
 
     public void start() {
         resetGame();
-        changeState(GameState.PLAYING);
+        changeState(GameState.MENU);
         gameThread = new Thread(this);
         gameThread.start();
-
     }
-    public void update() {
-        if (state == GameState.PLAYING) {
-            player.update(keyHandler);
-            if (map.collectCoin(player.getY(), player.getX())) {
-                player.gainScore(1);
-            }
-            guards.forEach(g -> g.update(player));
-            powerups.update();
-            PrisonMap.update(); // static for now
 
-            for (Hazard h : hazards) {
-                // If player is on the exact same tile and hazard is active
-                if (h.isActive() && player.getX() == (int)h.getX() && player.getY() == (int)h.getY()) {
-                    h.applyTo(player);
-                }
-            }
-            if (player.getX() == map.getEndTile().x && player.getY() == map.getEndTile().y) {
-                resetGame();
-            }
-            updateHud();
+    public void update() {
+        handlePauseToggle();
+
+        if (state != GameState.PLAYING) {
+            return;
         }
+
+        player.update(keyHandler);
+        if (map.collectCoin(player.getY(), player.getX())) {
+            player.gainScore(1);
+        }
+        guards.forEach(g -> g.update(player));
+        powerups.update();
+        PrisonMap.update(); // static for now
+
+        for (Hazard h : hazards) {
+            // If player is on the exact same tile and hazard is active
+            if (h.isActive() && player.getX() == (int)h.getX() && player.getY() == (int)h.getY()) {
+                h.applyTo(player);
+            }
+        }
+
+        if (player.getLives() <= 0) {
+            changeState(GameState.GAME_OVER);
+            return;
+        }
+
+        if (player.getX() == map.getEndTile().x && player.getY() == map.getEndTile().y) {
+            changeState(GameState.LEVEL_COMPLETE);
+            return;
+        }
+
+        updateHud();
     }
 
     public void render(Graphics g) {
@@ -113,13 +151,20 @@ public class Game implements Runnable {
         loadEntitiesFromMap();
         map.spawnCoins(COINS_PER_MATCH);
         player.reset();
+        player.setLives(getDifficulty().getLives());
         guards.forEach(g -> {}); // placeholder in case guards have reset logic later
         matchStartMillis = System.currentTimeMillis();
+        keyHandler.clear();
         updateHud();
     }
 
     private void changeState(GameState state) {
         this.state = state;
+        if (state != GameState.PLAYING) {
+            keyHandler.clear();
+            escPressedLastFrame = false;
+        }
+        mapPanel.repaint();
 
         if(state == GameState.GAME_OVER && timer != null) {
             timer.stop();
@@ -199,5 +244,70 @@ public class Game implements Runnable {
                 }
             }
         }
+    }
+
+    public void startMatch() {
+        resetGame();
+        changeState(GameState.PLAYING);
+        mapPanel.requestFocusInWindow();
+    }
+
+    public void restartMatch() {
+        startMatch();
+    }
+
+    public void resumeMatch() {
+        if (state == GameState.FROZEN) {
+            changeState(GameState.PLAYING);
+            mapPanel.requestFocusInWindow();
+        }
+    }
+
+    public void returnToMenu() {
+        changeState(GameState.MENU);
+        mapPanel.requestFocusInWindow();
+    }
+
+    public void increaseDifficulty() {
+        if (difficultyIndex < difficulties.length - 1) {
+            difficultyIndex++;
+            mapPanel.repaint();
+        }
+    }
+
+    public void decreaseDifficulty() {
+        if (difficultyIndex > 0) {
+            difficultyIndex--;
+            mapPanel.repaint();
+        }
+    }
+
+    public Difficulty getDifficulty() {
+        return difficulties[difficultyIndex];
+    }
+
+    public String getDifficultyLabel() {
+        return getDifficulty().getLabel();
+    }
+
+    public GameState getState() {
+        return state;
+    }
+
+    public void exitGame() {
+        System.exit(0);
+    }
+
+    private void handlePauseToggle() {
+        boolean escDown = keyHandler.escapePressed;
+        if (escDown && !escPressedLastFrame) {
+            if (state == GameState.PLAYING) {
+                changeState(GameState.FROZEN);
+            } else if (state == GameState.FROZEN) {
+                changeState(GameState.PLAYING);
+                mapPanel.requestFocusInWindow();
+            }
+        }
+        escPressedLastFrame = escDown;
     }
 }

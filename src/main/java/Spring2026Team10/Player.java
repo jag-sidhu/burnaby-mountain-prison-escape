@@ -113,6 +113,10 @@ public class Player extends Entity {
         lives--;
     }
 
+    public void setLives(int lives) {
+        this.lives = Math.max(0, lives);
+    }
+
     public void gainScore(int amount) {
         score += amount;
     }
