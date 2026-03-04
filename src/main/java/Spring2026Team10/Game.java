@@ -58,7 +58,13 @@ public class Game implements Runnable {
         map = mapPanel.getPrisonMap();
         Point start = map.getStartTile();
         player = new Player(start.x, start.y, map);
+
         guards = new ArrayList<>();
+        for (Point pos : mapPanel.getGuardSpawns()) { 
+            guards.add(new Guard(pos.x, pos.y, map, Guard.GuardType.PATROL, true, 4));
+        }
+        mapPanel.setGuards(guards);
+        
         powerups = new Powerups();
         hazards = new ArrayList<>();
 
