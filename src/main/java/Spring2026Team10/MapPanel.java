@@ -47,10 +47,12 @@ public class MapPanel extends JPanel {
     private float cameraY = 0f;
 
     private java.util.List<Hazard> hazards = new java.util.ArrayList<>();
+    private java.util.List<Rewards> rewards = new java.util.ArrayList<>();
     private final Map<Entity.Direction, BufferedImage[]> playerSprites = new EnumMap<>(Entity.Direction.class);
     private final Map<Entity.Direction, BufferedImage[]> guardSprites = new EnumMap<>(Entity.Direction.class);
     private final Map<HazardType, BufferedImage> hazardSprites = new EnumMap<>(HazardType.class);
-    
+    private final Map<RewardType, BufferedImage> rewardSprites = new EnumMap<>(RewardType.class);
+
     public void addGuardSpawn(int col, int row) {
         guardSpawns.add(new java.awt.Point(col, row));
     }
@@ -60,6 +62,10 @@ public class MapPanel extends JPanel {
     }
     public void setHazards(java.util.List<Hazard> hazards) {
         this.hazards = hazards;
+    }
+
+    public void setRewards(java.util.List<Rewards> rewards) {
+        this.rewards = rewards;
     }
 
     public MapPanel(PrisonMap prisonMap) {
@@ -111,6 +117,10 @@ public class MapPanel extends JPanel {
         hazardSprites.put(HazardType.PARKING_TICKET, loadSprite("/sprites/hazards/ParkingTicket.png"));
         hazardSprites.put(HazardType.BEAR, loadSprite("/sprites/hazards/Bear.png"));
         hazardSprites.put(HazardType.SPOILED_MILK, loadSprite("/sprites/hazards/Milk.png"));
+
+        rewardSprites.put(RewardType.LAPTOP, loadSprite("/sprites/rewards/laptop.png"));
+        rewardSprites.put(RewardType.STUDENT_ID, loadSprite("/sprites/rewards/studentID.png"));
+        rewardSprites.put(RewardType.RACCOON, loadSprite("/sprites/rewards/raccoon.png"));
     }
 
     private BufferedImage[] loadFrames(String frame1, String frame2) {
@@ -170,6 +180,7 @@ public class MapPanel extends JPanel {
         paintGrid(worldG2d);
         paintPlayer(worldG2d);         // player & guards on top of markers
         paintHazards(worldG2d);
+        paintRewards(worldG2d);
         paintGuards(worldG2d);
         worldG2d.dispose();
 
@@ -391,6 +402,27 @@ public class MapPanel extends JPanel {
                     int size = CELL_SIZE - 6;
                     g2d.setColor(Color.YELLOW);
                     g2d.fillOval(hx + 3, hy + 3, size, size); 
+                }
+            }
+        }
+    }
+
+    private void paintRewards(Graphics2D g2d) {
+        if (rewards == null) return;
+        for (Rewards reward : rewards) {
+            if(reward.isActive()) {
+                int rx = (int)reward.getX() * CELL_SIZE;
+                int ry = (int)reward.getY() * CELL_SIZE;
+
+                BufferedImage imgToDraw = rewardSprites.get(reward.getRewardType());
+
+                if(imgToDraw != null) {
+                    g2d.drawImage(imgToDraw, rx, ry, CELL_SIZE, CELL_SIZE, null);
+                }
+                else {
+                    int size = CELL_SIZE - 6;
+                    g2d.setColor(Color.GREEN);
+                    g2d.fillOval(rx + 3, ry + 3, size, size);
                 }
             }
         }

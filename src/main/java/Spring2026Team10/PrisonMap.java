@@ -204,4 +204,23 @@ public class PrisonMap {
             tiles[p.y][p.x] = TileType.HAZARD;
         }
     }
+
+    public void spawnRewards() {
+        List<Point> candidates = new ArrayList<>();
+
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
+                if (tiles[row][col] == TileType.FLOOR) {
+                    candidates.add(new Point(col, row));
+                }
+            }
+        }
+
+        Collections.shuffle(candidates, random);
+        for (int i = 0; i < 3; i++) {
+            Point p = candidates.get(i);
+            tiles[p.y][p.x] = TileType.REWARD;
+        }
+    }
+
 }
