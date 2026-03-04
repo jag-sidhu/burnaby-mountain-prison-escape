@@ -33,7 +33,7 @@ public class MapPanel extends JPanel {
     private static final Color HUD_BOX_BG = new Color(250, 250, 250);
     private static final int UI_FONT_SIZE = Math.max(12, Math.round(CELL_SIZE * 1.2f));
     private static final float BORDER_STROKE = Math.max(1.25f, CELL_SIZE * 0.125f);
-    private static final float CAMERA_ZOOM = 3.0f;
+    private static final float CAMERA_ZOOM = 5.5f;
     private static final float VISIBILITY_RADIUS_TILES = 10.5f;
 
     private final PrisonMap prisonMap;
