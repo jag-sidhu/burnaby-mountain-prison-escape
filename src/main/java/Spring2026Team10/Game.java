@@ -9,6 +9,7 @@ import java.util.List;
 import javax.swing.Timer;
 
 public class Game implements Runnable {
+    private static final int COINS_PER_MATCH = 20;
     private GameState state;
     private final Player player;
     private final PrisonMap map;
@@ -20,6 +21,7 @@ public class Game implements Runnable {
     private final MapPanel mapPanel;
     KeyHandler keyHandler = new KeyHandler();
     private final List<Hazard> hazards;
+    private long matchStartMillis;
 
     //Set FPS
     int FPS = 30;
@@ -28,7 +30,7 @@ public class Game implements Runnable {
     public Game(MapPanel mapPanel) {
         this.mapPanel = mapPanel;
         state = GameState.MENU;
-        map = new PrisonMap();
+        map = mapPanel.getPrisonMap();
         Point start = map.getStartTile();
         player = new Player(start.x, start.y, map);
         guards = new ArrayList<>();
@@ -58,6 +60,9 @@ public class Game implements Runnable {
     public void update() {
         if (state == GameState.PLAYING) {
             player.update(keyHandler);
+            if (map.collectCoin(player.getY(), player.getX())) {
+                player.gainScore(1);
+            }
             guards.forEach(g -> g.update(player));
             powerups.update();
             PrisonMap.update(); // static for now
@@ -68,6 +73,10 @@ public class Game implements Runnable {
                     h.applyTo(player);
                 }
             }
+            if (player.getX() == map.getEndTile().x && player.getY() == map.getEndTile().y) {
+                resetGame();
+            }
+            updateHud();
         }
     }
 
@@ -101,8 +110,12 @@ public class Game implements Runnable {
 
     public void resetGame() {
         map.reset();
+        loadEntitiesFromMap();
+        map.spawnCoins(COINS_PER_MATCH);
         player.reset();
         guards.forEach(g -> {}); // placeholder in case guards have reset logic later
+        matchStartMillis = System.currentTimeMillis();
+        updateHud();
     }
 
     private void changeState(GameState state) {
@@ -120,8 +133,6 @@ public class Game implements Runnable {
         double nextdraw = System.nanoTime() + drawInterval;
 
         while(gameThread != null) {
-            System.out.println("Game loop running");
-
             //Update character positions
             update();
 
@@ -142,6 +153,14 @@ public class Game implements Runnable {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    private void updateHud() {
+        long elapsedSeconds = Math.max(0L, (System.currentTimeMillis() - matchStartMillis) / 1000L);
+        long minutes = elapsedSeconds / 60L;
+        long seconds = elapsedSeconds % 60L;
+        mapPanel.setTimeText(String.format("%02d:%02d", minutes, seconds));
+        mapPanel.setScoreText(Integer.toString(player.getScore()));
     }
 
     private void loadEntitiesFromMap() {
