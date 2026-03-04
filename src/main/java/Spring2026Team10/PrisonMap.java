@@ -49,12 +49,6 @@ public class PrisonMap {
             {27, 20, 2, 11}
     };
 
-    private static final int[][] BASE_HAZARD_TILES = {
-            {14, 3},
-            {15, 3},
-            {14, 5}
-    };
-
     private final TileType[][] tiles = new TileType[ROWS][COLS];
     private final boolean[][] coins = new boolean[ROWS][COLS];
     private final Point startTile = scalePoint(BASE_START_TILE);
@@ -81,10 +75,6 @@ public class PrisonMap {
 
         setTile(startTile.y, startTile.x, TileType.START);
         setTile(endTile.y, endTile.x, TileType.END);
-
-        for (int[] hazard : BASE_HAZARD_TILES) {
-            fillScaledRect(hazard[0], hazard[1], 1, 1, TileType.HAZARD);
-        }
     }
 
     public int getRows() {
@@ -191,5 +181,27 @@ public class PrisonMap {
             return false;
         }
         return getTile(row, col).isWalkable();
+    }
+
+    public void spawnHazards(int count) {
+        List<Point> candidates = new ArrayList<>();
+        
+        // Finds every empty floor tile on the map
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
+                if (tiles[row][col] == TileType.FLOOR) {
+                    candidates.add(new Point(col, row));
+                }
+            }
+        }
+
+        // Shuffles the list to randomize them
+        Collections.shuffle(candidates, random);
+        
+        int amountToPlace = Math.min(count, candidates.size());
+        for (int i = 0; i < amountToPlace; i++) {
+            Point p = candidates.get(i);
+            tiles[p.y][p.x] = TileType.HAZARD;
+        }
     }
 }
