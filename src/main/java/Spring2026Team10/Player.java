@@ -20,6 +20,8 @@ public class Player extends Entity {
     private int slowedDuration = 0;
     private boolean controlsInverted = false;
     private int invertedDuration = 0;
+    private boolean guardsFrozen = false;
+    private int frozenDuration = 0;
 
     //when he grabs the powerups
     private boolean speedBoostActive = false;
@@ -80,6 +82,10 @@ public class Player extends Entity {
     }
 
     private void updatePowerUps() {
+        if (guardsFrozen) {
+            if (--frozenDuration <= 0) guardsFrozen = false;
+        }
+        
         if (speedBoostActive) {
             speedBoostDuration--;
             if (speedBoostDuration <= 0) {
@@ -179,5 +185,20 @@ public class Player extends Entity {
             return StatusState.INVERTED_CONTROLS;
         }
         return StatusState.NORMAL;
+    }
+
+    public void gainLife() {
+        if (lives < 3) {
+            lives++;
+        }
+    }
+
+    public void freezeGuards(int duration) {
+        guardsFrozen = true;
+        frozenDuration = duration;
+    }
+
+    public boolean isGuardsFrozen() {
+        return guardsFrozen;
     }
 }

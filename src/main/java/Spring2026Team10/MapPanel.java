@@ -50,11 +50,13 @@ public class MapPanel extends JPanel {
 
     private java.util.List<Hazard> hazards = new java.util.ArrayList<>();
     private java.util.List<Rewards> rewards = new java.util.ArrayList<>();
+    private java.util.List<Powerups> powerups = new java.util.ArrayList<>();
     private final Map<Entity.Direction, BufferedImage[]> playerSprites = new EnumMap<>(Entity.Direction.class);
     private final Map<Entity.Direction, BufferedImage[]> guardSprites = new EnumMap<>(Entity.Direction.class);
     private final Map<HazardType, BufferedImage> hazardSprites = new EnumMap<>(HazardType.class);
     private final Map<RewardType, BufferedImage> rewardSprites = new EnumMap<>(RewardType.class);
     private final Map<RewardType, BufferedImage> rewardEmptySprites = new EnumMap<>(RewardType.class);
+    private final Map<PowerupType, BufferedImage> powerupSprites = new EnumMap<>(PowerupType.class);
     private BufferedImage heartFilledSprite;
     private BufferedImage heartEmptySprite;
 
@@ -71,6 +73,10 @@ public class MapPanel extends JPanel {
 
     public void setRewards(java.util.List<Rewards> rewards) {
         this.rewards = rewards;
+    }
+
+    public void setPowerups(java.util.List<Powerups> powerups) {
+        this.powerups = powerups;
     }
 
     public MapPanel(PrisonMap prisonMap) {
@@ -129,6 +135,11 @@ public class MapPanel extends JPanel {
         rewardEmptySprites.put(RewardType.LAPTOP, brightenEmptySprite(loadSprite("/sprites/rewards/laptop_empty.png")));
         rewardEmptySprites.put(RewardType.STUDENT_ID, brightenEmptySprite(loadSprite("/sprites/rewards/studentID_empty.png")));
         rewardEmptySprites.put(RewardType.RACCOON, brightenEmptySprite(loadSprite("/sprites/rewards/raccoon_empty.png")));
+
+        powerupSprites.put(PowerupType.COFFEE, loadSprite("/sprites/powerups/coffee.png"));
+        powerupSprites.put(PowerupType.SNOWFLAKE, loadSprite("/sprites/powerups/snowflake.png"));
+        powerupSprites.put(PowerupType.DOCTORS_NOTE, loadSprite("/sprites/powerups/doctorsNote.png"));
+
         heartFilledSprite = loadSprite("/sprites/HUD/Heart_Fill.png");
         heartEmptySprite = brightenEmptySprite(loadSprite("/sprites/HUD/Heart_Empty.png"));
     }
@@ -220,6 +231,7 @@ public class MapPanel extends JPanel {
         paintPlayer(worldG2d);         // player & guards on top of markers
         paintHazards(worldG2d);
         paintRewards(worldG2d);
+        paintPowerups(worldG2d);
         paintGuards(worldG2d);
         worldG2d.dispose();
 
@@ -549,6 +561,28 @@ public class MapPanel extends JPanel {
                     int size = CELL_SIZE - 6;
                     g2d.setColor(Color.GREEN);
                     g2d.fillOval(rx + 3, ry + 3, size, size);
+                }
+            }
+        }
+    }
+
+    private void paintPowerups(Graphics2D g2d) {
+        if (powerups == null) return;
+        
+        for (Powerups p : powerups) {
+            if (p.isActive()) {
+                int px = (int)p.getX() * CELL_SIZE;
+                int py = (int)p.getY() * CELL_SIZE;
+
+                BufferedImage imgToDraw = powerupSprites.get(p.getType());
+
+                if (imgToDraw != null) {
+                    g2d.drawImage(imgToDraw, px, py, CELL_SIZE, CELL_SIZE, null);
+                } else {
+                    // Fallback cyan circles if the images are missing
+                    int size = CELL_SIZE - 6;
+                    g2d.setColor(Color.CYAN);
+                    g2d.fillOval(px + 3, py + 3, size, size);
                 }
             }
         }
