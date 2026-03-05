@@ -28,10 +28,12 @@ public class MapPanel extends JPanel {
     private static final Color GRID_COLOR = new Color(60, 60, 60);
     private static final Color COIN_COLOR = new Color(242, 188, 34);
     private static final Color COIN_BORDER_COLOR = new Color(178, 131, 22);
-    private static final int HUD_HEIGHT = CELL_SIZE * 2;
-    private static final Color HUD_BG = new Color(236, 236, 236);
-    private static final Color HUD_BOX_BG = new Color(250, 250, 250);
-    private static final int UI_FONT_SIZE = Math.max(12, Math.round(CELL_SIZE * 1.2f));
+    private static final Color HUD_PANEL_BG = new Color(22, 28, 36, 178);
+    private static final Color HUD_PANEL_BORDER = new Color(210, 220, 235, 110);
+    private static final Color HUD_PANEL_SHADOW = new Color(0, 0, 0, 80);
+    private static final Color HUD_TEXT_COLOR = new Color(243, 246, 251, 235);
+    private static final int HUD_HEIGHT = 0;
+    private static final int UI_FONT_SIZE = Math.max(15, Math.round(CELL_SIZE * 1.75f));
     private static final float BORDER_STROKE = Math.max(1.25f, CELL_SIZE * 0.125f);
     private static final float CAMERA_ZOOM = 5.5f;
     private static final float VISIBILITY_RADIUS_TILES = 10.5f;
@@ -52,6 +54,8 @@ public class MapPanel extends JPanel {
     private final Map<Entity.Direction, BufferedImage[]> guardSprites = new EnumMap<>(Entity.Direction.class);
     private final Map<HazardType, BufferedImage> hazardSprites = new EnumMap<>(HazardType.class);
     private final Map<RewardType, BufferedImage> rewardSprites = new EnumMap<>(RewardType.class);
+    private BufferedImage heartFilledSprite;
+    private BufferedImage heartEmptySprite;
 
     public void addGuardSpawn(int col, int row) {
         guardSpawns.add(new java.awt.Point(col, row));
@@ -71,7 +75,7 @@ public class MapPanel extends JPanel {
     public MapPanel(PrisonMap prisonMap) {
         this.prisonMap = prisonMap;
         int width = prisonMap.getCols() * CELL_SIZE + 1;
-        int height = prisonMap.getRows() * CELL_SIZE + HUD_HEIGHT + 1;
+        int height = prisonMap.getRows() * CELL_SIZE + 1;
         setPreferredSize(new Dimension(width, height));
         setBackground(new Color(214, 214, 214));
         loadSprites();
@@ -121,6 +125,8 @@ public class MapPanel extends JPanel {
         rewardSprites.put(RewardType.LAPTOP, loadSprite("/sprites/rewards/laptop.png"));
         rewardSprites.put(RewardType.STUDENT_ID, loadSprite("/sprites/rewards/studentID.png"));
         rewardSprites.put(RewardType.RACCOON, loadSprite("/sprites/rewards/raccoon.png"));
+        heartFilledSprite = loadSprite("/sprites/HUD/Heart_Fill.png");
+        heartEmptySprite = loadSprite("/sprites/HUD/Heart_Empty.png");
     }
 
     private BufferedImage[] loadFrames(String frame1, String frame2) {
@@ -187,7 +193,9 @@ public class MapPanel extends JPanel {
         if (currentState == GameState.PLAYING || currentState == GameState.FROZEN) {
             paintFogOfWar(g2d, mapViewWidth, mapViewHeight);
         }
-        paintBottomHud(g2d, mapViewWidth, mapViewHeight);
+        if (currentState == GameState.PLAYING || currentState == GameState.FROZEN) {
+            paintScreenHud(g2d, mapViewWidth, mapViewHeight);
+        }
         paintOverlay(g2d, currentState);
         g2d.dispose();
     }
@@ -223,28 +231,51 @@ public class MapPanel extends JPanel {
         g2d.drawRect(0, 0, maxX, maxY);
     }
 
-    private void paintBottomHud(Graphics2D g2d, int mapViewWidth, int mapViewHeight) {
-        int hudY = mapViewHeight;
+    private void paintScreenHud(Graphics2D g2d, int mapViewWidth, int mapViewHeight) {
+        int pad = 12;
+        int boxHeight = 38;
 
-        g2d.setColor(HUD_BG);
-        g2d.fillRect(0, hudY, mapViewWidth, HUD_HEIGHT);
+        int timeBoxWidth = 112;
+        int timeBoxX = (mapViewWidth - timeBoxWidth) / 2;
+        int timeBoxY = pad;
+        drawHudBox(g2d, timeBoxX, timeBoxY, timeBoxWidth, boxHeight, timeText);
 
-        g2d.setColor(GRID_COLOR);
-        g2d.setStroke(new BasicStroke(1.5f));
-        g2d.drawRect(0, hudY, mapViewWidth, HUD_HEIGHT);
+        int scoreBoxWidth = 96;
+        int scoreIconSize = Math.max(12, boxHeight - 10);
+        int scoreBoxX = mapViewWidth - scoreBoxWidth - scoreIconSize - 10 - pad;
+        int scoreBoxY = pad;
+        drawScoreBox(g2d, scoreBoxX, scoreBoxY, scoreBoxWidth, boxHeight, scoreText);
 
-        int labelWidth = CELL_SIZE * 6;
-        int valueWidth = CELL_SIZE * 5;
-        int gapWidth = CELL_SIZE * 2;
-        int totalWidth = (labelWidth * 2) + (valueWidth * 2) + gapWidth;
-        int startX = (mapViewWidth - totalWidth) / 2;
+        paintLivesHud(g2d, mapViewWidth, mapViewHeight);
+    }
 
-        drawHudBox(g2d, startX, hudY, labelWidth, "Time");
-        drawHudBox(g2d, startX + labelWidth, hudY, valueWidth, timeText);
+    private void paintLivesHud(Graphics2D g2d, int mapViewWidth, int mapViewHeight) {
+        int maxLives = 3;
+        int currentLives = 3;
 
-        int scoreX = startX + labelWidth + valueWidth + gapWidth;
-        drawHudBox(g2d, scoreX, hudY, labelWidth, "Score");
-        drawHudBox(g2d, scoreX + labelWidth, hudY, valueWidth, scoreText);
+        if (game != null) {
+            maxLives = game.getDifficulty().getLives();
+        }
+        if (player != null) {
+            currentLives = Math.max(0, player.getLives());
+        }
+
+        int heartSize = 34;
+        int spacing = 6;
+        int totalWidth = (maxLives * heartSize) + ((maxLives - 1) * spacing);
+        int startX = mapViewWidth - totalWidth - 12;
+        int drawY = mapViewHeight - heartSize - 12;
+
+        for (int i = 0; i < maxLives; i++) {
+            int x = startX + i * (heartSize + spacing);
+            BufferedImage heart = i < currentLives ? heartFilledSprite : heartEmptySprite;
+            if (heart != null) {
+                g2d.drawImage(heart, x, drawY, heartSize, heartSize, null);
+            } else {
+                g2d.setColor(i < currentLives ? new Color(220, 60, 60) : new Color(120, 120, 120));
+                g2d.fillOval(x, drawY, heartSize, heartSize);
+            }
+        }
     }
 
     private void paintCoins(Graphics2D g2d) {
@@ -299,17 +330,37 @@ public class MapPanel extends JPanel {
         drawCenteredText(g2d, text, x + (width / 2), y + (height / 2));
     }
 
-    private void drawHudBox(Graphics2D g2d, int x, int y, int width, String text) {
-        g2d.setColor(HUD_BOX_BG);
-        g2d.fillRect(x, y, width, HUD_HEIGHT);
+    private void drawHudBox(Graphics2D g2d, int x, int y, int width, int height, String text) {
+        int arc = 12;
+        g2d.setColor(HUD_PANEL_SHADOW);
+        g2d.fillRoundRect(x + 2, y + 3, width, height, arc, arc);
+        g2d.setColor(HUD_PANEL_BG);
+        g2d.fillRoundRect(x, y, width, height, arc, arc);
+        g2d.setColor(HUD_PANEL_BORDER);
+        g2d.drawRoundRect(x, y, width, height, arc, arc);
+        g2d.setFont(new Font(Font.SANS_SERIF, Font.BOLD, UI_FONT_SIZE));
+        g2d.setColor(HUD_TEXT_COLOR);
+        drawCenteredText(g2d, text, x + (width / 2), y + (height / 2));
+    }
 
-        g2d.setColor(GRID_COLOR);
-        g2d.setStroke(new BasicStroke(1f));
-        g2d.drawRect(x, y, width, HUD_HEIGHT);
+    private void drawScoreBox(Graphics2D g2d, int x, int y, int width, int height, String text) {
+        drawHudBox(g2d, x, y, width, height, "");
 
-        g2d.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, UI_FONT_SIZE));
-        g2d.setColor(Color.BLACK);
-        drawCenteredText(g2d, text, x + (width / 2), y + (HUD_HEIGHT / 2));
+        int iconSize = Math.max(12, height - 10);
+        int iconX = x + width + 6;
+        int iconY = y + ((height - iconSize) / 2);
+        g2d.setColor(COIN_COLOR);
+        g2d.fillOval(iconX, iconY, iconSize, iconSize);
+        g2d.setColor(COIN_BORDER_COLOR);
+        g2d.drawOval(iconX, iconY, iconSize, iconSize);
+
+        g2d.setFont(new Font(Font.SANS_SERIF, Font.BOLD, UI_FONT_SIZE));
+        g2d.setColor(HUD_TEXT_COLOR);
+        int textAreaCenterX = x + (width / 2);
+        int textWidth = g2d.getFontMetrics().stringWidth(text);
+        int textX = textAreaCenterX - (textWidth / 2);
+        int textY = y + (height / 2) + (g2d.getFontMetrics().getAscent() / 3);
+        g2d.drawString(text, textX, textY);
     }
 
     private void drawCenteredText(Graphics2D g2d, String text, int centerX, int centerY) {
