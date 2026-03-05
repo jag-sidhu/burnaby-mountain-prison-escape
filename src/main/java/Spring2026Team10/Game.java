@@ -117,43 +117,17 @@ public class Game implements Runnable {
             }
         }
 
-        if (player.getLives() <= 0) {
+        if (player.getLives() <= 0 || player.getScore() < 0) {
             changeState(GameState.GAME_OVER);
             return;
         }
 
-        if (player.getX() == map.getEndTile().x && player.getY() == map.getEndTile().y) {
+        if (player.getReward() == 3 && (player.getX() == map.getEndTile().x && player.getY() == map.getEndTile().y)) {
             changeState(GameState.LEVEL_COMPLETE);
             return;
         }
 
         updateHud();
-    }
-
-    public void render(Graphics g) {
-        switch(state) {
-            case MENU -> {
-                //drawMenu(g);
-            }
-            case READY -> {
-                //maybe render countdown
-            }
-            case PLAYING -> {
-                //drawGame();
-            }
-            case DYING -> {
-                //animation maybe
-            }
-            case FROZEN -> {
-                //paused state
-            }
-            case LEVEL_COMPLETE -> {
-                //drawLevelComplete(g);
-            }
-            case GAME_OVER -> {
-                //drawGameOver(g);
-            }
-        }
     }
 
     public void handleInput(KeyEvent e) {}

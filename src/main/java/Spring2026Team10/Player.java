@@ -126,6 +126,10 @@ public class Player extends Entity {
         rewards++;
     }
 
+    public int getReward() {
+        return rewards;
+    }
+
     // Hazard methods
     public void tieHands(int duration) {
         handsTiedActive = true;
