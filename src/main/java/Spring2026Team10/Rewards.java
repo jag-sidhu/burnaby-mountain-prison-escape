@@ -15,18 +15,23 @@ public class Rewards {
 
         switch (rewardType) {
             case LAPTOP:
-                this.bonus = 100;
+                this.bonus = 50;
                 break;
             case STUDENT_ID:
-                this.bonus = 125;
+                this.bonus = 75;
                 break;
             case RACCOON:
-                this.bonus = 150;
+                this.bonus = 100;
                 break;
         }
     }
     public void applyTo(Player player) {
         if (!active) {
+            return;
+        }
+
+        if (player.isHandsTied()) {
+            System.out.println("Your hands are cuffed! You cannot pick up the " + rewardType + " right now.");
             return;
         }
 
