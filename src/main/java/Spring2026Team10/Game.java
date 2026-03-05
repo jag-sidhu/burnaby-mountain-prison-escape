@@ -100,7 +100,11 @@ public class Game implements Runnable {
         if (map.collectCoin(player.getY(), player.getX())) {
             player.gainScore(10);
         }
-        guards.forEach(g -> g.update(player));
+
+        if (!player.isGuardsFrozen()) {
+            guards.forEach(g -> g.update(player));
+        }
+        
         PrisonMap.update(); // static for now
 
         for (Powerups p : powerups) {
