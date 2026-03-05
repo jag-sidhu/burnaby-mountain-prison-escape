@@ -32,7 +32,7 @@ public class Game implements Runnable {
         }
     }
 
-    private static final int COINS_PER_MATCH = 20;
+    private static final int COINS_PER_MATCH = 50;
     private final Difficulty[] difficulties = Difficulty.values();
     private int difficultyIndex = 0;
     private GameState state;
@@ -97,7 +97,7 @@ public class Game implements Runnable {
 
         player.update(keyHandler);
         if (map.collectCoin(player.getY(), player.getX())) {
-            player.gainScore(1);
+            player.gainScore(10);
         }
         guards.forEach(g -> g.update(player));
         powerups.update();
