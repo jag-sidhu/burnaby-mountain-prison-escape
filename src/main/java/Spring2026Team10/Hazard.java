@@ -15,16 +15,16 @@ public class Hazard {
 
         switch (hazardType) {
             case HANDCUFFS:
-                this.penalty = 50; 
+                this.penalty = 10; 
                 break;
             case PARKING_TICKET:
-                this.penalty = 100;
+                this.penalty = 20;
                 break;
             case BEAR:
-                this.penalty = 200;
+                this.penalty = 50;
                 break;
             case SPOILED_MILK:
-                this.penalty = 75;
+                this.penalty = 15;
                 break;
         }
     }
