@@ -27,10 +27,150 @@ public class Guard extends Entity {
 
     //chase info
     private int agroRange = 5; // number of tiles player must be within to trigger chase
+    private int chaseRange = 25; // max tiles guard will chase before giving up
+    private int damageCooldown = 0; // frames remaining before guard can damage player again
+    private static final int DAMAGE_COOLDOWN_FRAMES = 60; // 2 seconds at 30 FPS
 
-        /**
-     * Spawns a guard at a random walkable tile within a specific zone of the map.
-     * Ensures the guard does not spawn on the player or other guards.
+    /**
+     * checks if a position has enough open space to patrol
+     * returns true if the guard can walk at least minDistance tiles in any direction
+     */
+    private static boolean hasPatrolSpace(PrisonMap map, int x, int y, int minDistance) {
+        int right = 0, left = 0, down = 0, up = 0;
+        for (int i = 1; i <= minDistance; i++) {
+            if (map.isWalkable(y, x + i)) right++;
+            else break;
+        }
+        for (int i = 1; i <= minDistance; i++) {
+            if (map.isWalkable(y, x - i)) left++;
+            else break;
+        }
+        for (int i = 1; i <= minDistance; i++) {
+            if (map.isWalkable(y + i, x)) down++;
+            else break;
+        }
+        for (int i = 1; i <= minDistance; i++) {
+            if (map.isWalkable(y - i, x)) up++;
+            else break;
+        }
+        return right >= minDistance || left >= minDistance 
+            || down >= minDistance || up >= minDistance;
+    }
+
+    /**
+     * determines the best patrol direction based on available space at spawn
+     * returns true if horizontal patrol has more space, false if vertical is better
+     */
+    private static boolean bestPatrolDirection(PrisonMap map, int x, int y) {
+        int right = 0, left = 0, down = 0, up = 0;
+        for (int i = 1; i <= 20; i++) {
+            if (map.isWalkable(y, x + i)) right++; else break;
+        }
+        for (int i = 1; i <= 20; i++) {
+            if (map.isWalkable(y, x - i)) left++; else break;
+        }
+        for (int i = 1; i <= 20; i++) {
+            if (map.isWalkable(y + i, x)) down++; else break;
+        }
+        for (int i = 1; i <= 20; i++) {
+            if (map.isWalkable(y - i, x)) up++; else break;
+        }
+        int horizontal = Math.max(right, left);
+        int vertical = Math.max(down, up);
+        return horizontal >= vertical;
+    }
+
+    /**
+     * checks if the guard has a clear line of sight to the player
+     * returns false if there is a wall between the guard and the player
+     * ensures that the guard doesn't get stuck on wall if the player is just out of sight around a corner
+     */
+    private boolean hasLineOfSight(Player player) {
+        int x0 = this.x, y0 = this.y;
+        int x1 = player.getX(), y1 = player.getY();
+
+        int dx = Math.abs(x1 - x0);
+        int dy = Math.abs(y1 - y0);
+        int sx = (x0 < x1) ? 1 : -1;
+        int sy = (y0 < y1) ? 1 : -1;
+        int err = dx - dy;
+
+        while (true) {
+            if (!map.isWalkable(y0, x0)) return false;
+            if (x0 == x1 && y0 == y1) break;
+
+            int e2 = 2 * err;
+            if (e2 > -dy) {
+                err -= dy;
+                x0 += sx;
+            }
+            if (e2 < dx) {
+                err += dx;
+                y0 += sy;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * guard gets stuck on walls when trying to return to it's patrolling position, finds the next step toward a target position using breadth first search pathfinding
+     * returns an int array {dx, dy} representing the next move direction
+     * returns {0, 0} if no path is found
+     */
+    private int[] findNextStep(int targetX, int targetY) {
+        if (x == targetX && y == targetY) return new int[]{0, 0};
+
+        int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0}};
+        boolean[][] visited = new boolean[map.getRows()][map.getCols()];
+        int[][] parentX = new int[map.getRows()][map.getCols()];
+        int[][] parentY = new int[map.getRows()][map.getCols()];
+
+        for (int[] row : parentX) java.util.Arrays.fill(row, -1);
+        for (int[] row : parentY) java.util.Arrays.fill(row, -1);
+
+        java.util.Queue<int[]> queue = new java.util.LinkedList<>();
+        queue.add(new int[]{x, y});
+        visited[y][x] = true;
+
+        boolean found = false;
+        while (!queue.isEmpty()) {
+            int[] curr = queue.poll();
+            int cx = curr[0], cy = curr[1];
+
+            if (cx == targetX && cy == targetY) {
+                found = true;
+                break;
+            }
+
+            for (int[] d : dirs) {
+                int nx = cx + d[0];
+                int ny = cy + d[1];
+                if (map.isWalkable(ny, nx) && !visited[ny][nx]) {
+                    visited[ny][nx] = true;
+                    parentX[ny][nx] = cx;
+                    parentY[ny][nx] = cy;
+                    queue.add(new int[]{nx, ny});
+                }
+            }
+        }
+
+        if (!found) return new int[]{0, 0};
+
+        // trace back to find first step
+        int cx = targetX, cy = targetY;
+        while (parentX[cy][cx] != x || parentY[cy][cx] != y) {
+            int px = parentX[cy][cx];
+            int py = parentY[cy][cx];
+            cx = px;
+            cy = py;
+        }
+
+        return new int[]{cx - x, cy - y};
+    }
+
+    /**
+     * spawns a guard at a random walkable tile within a specific zone of the map.
+     * ensures the guard does not spawn on the player or other guards.
      *
      * @param map              the prison map
      * @param type             the guard type (PATROL or CHASE)
@@ -55,10 +195,11 @@ public class Guard extends Entity {
     // calculate the bounds of this zone
     int zoneWidth = map.getCols() / totalZoneCols;
     int zoneHeight = map.getRows() / totalZoneRows;
-    int minX = zoneCol * zoneWidth;
-    int maxX = minX + zoneWidth;
-    int minY = zoneRow * zoneHeight;
-    int maxY = minY + zoneHeight;
+    int margin = 10; // keep guards away from map edges
+    int minX = Math.max(margin, zoneCol * zoneWidth);
+    int maxX = Math.min(map.getCols() - margin, minX + zoneWidth);
+    int minY = Math.max(margin, zoneRow * zoneHeight);
+    int maxY = Math.min(map.getRows() - margin, minY + zoneHeight);
 
     int attempts = 0;
     do {
@@ -80,18 +221,22 @@ public class Guard extends Entity {
                 }
             }
         }
-
+        // make sure guard has enough space to patrol
+        if (validSpawn && !hasPatrolSpace(map, x, y, 5)) {
+            validSpawn = false;
+        }
         attempts++;
-        // if no valid spot found in zone after 100 attempts, expand to full map
-        if (attempts > 100) {
+        // if no valid spot found in zone after 200 attempts, expand to full map
+        if (attempts > 200) {
             x = rand.nextInt(map.getCols());
             y = rand.nextInt(map.getRows());
-            validSpawn = map.isWalkable(y, x);
+            validSpawn = map.isWalkable(y, x) && hasPatrolSpace(map, x, y, 5);
         }
 
     } while (!validSpawn);
 
-    return new Guard(x, y, map, type, horizontalPatrol, patrolLength);
+    boolean bestDirection = bestPatrolDirection(map, x, y);
+    return new Guard(x, y, map, type, bestDirection, patrolLength);
     }
 
     /**
@@ -108,7 +253,7 @@ public class Guard extends Entity {
         super(startX, startY, map);
         this.type = type;
         this.state = (type == GuardType.PATROL) ? GuardState.PATROLLING : GuardState.CHASING;
-
+        this.speed = 0.2; // guards move .2 tile per update
         this.patrolStartX = startX;
         this.patrolStartY = startY;
         this.horizontalPatrol = horizontalPatrol;
@@ -116,23 +261,48 @@ public class Guard extends Entity {
         //calculate patrol end points based on patrol length and map boundaries
         if (horizontalPatrol) {
             patrolEndX = startX;
+            patrolEndY = startY;
+            
+            // try going right first
             for (int i = 1; i <= patrolLength; i++) {
                 if (map.isWalkable(startY, startX + i))
                     patrolEndX = startX + i;
                 else break;
             }
-            patrolEndY = startY;
+            
+            // if we couldn't move right at all, try going left
+            if (patrolEndX == startX) {
+                for (int i = 1; i <= patrolLength; i++) {
+                    if (map.isWalkable(startY, startX - i)) {
+                        patrolStartX = startX - i;
+                    } else break;
+                }
+                patrolEndX = startX;
+                patrolForward = false; // start moving left
+            }
         } else {
+            patrolEndX = startX;
             patrolEndY = startY;
+            
+            // try going down first
             for (int i = 1; i <= patrolLength; i++) {
                 if (map.isWalkable(startY + i, startX))
                     patrolEndY = startY + i;
                 else break;
             }
-            patrolEndX = startX;
+            
+            // if we couldn't move down at all, try going up
+            if (patrolEndY == startY) {
+                for (int i = 1; i <= patrolLength; i++) {
+                    if (map.isWalkable(startY - i, startX)) {
+                        patrolStartY = startY - i;
+                    } else break;
+                }
+                patrolEndY = startY;
+                patrolForward = false; // start moving up
+            }
         }
     }
-
     /**
      * updates the guard's state and position each frame
      * handles transitions between patrolling, chasing, and returning states.
@@ -140,13 +310,14 @@ public class Guard extends Entity {
      * @param player the player entity to track
      */
     public void update(Player player) {
+        if (damageCooldown > 0) damageCooldown--;
         switch (state) {
             case PATROLLING -> {
                 int distanceToPlayer =
                         Math.abs(player.getX() - x)
                                 + Math.abs(player.getY() - y);
-
-                if (distanceToPlayer <= agroRange)
+            
+                if (distanceToPlayer <= agroRange && hasLineOfSight(player))
                     state = GuardState.CHASING;
                 else
                     patrolMove();
@@ -158,23 +329,34 @@ public class Guard extends Entity {
     }
 
     /**
-     * moves the guard along its patrol path, reversing direction at its endpoints
+     * moves the guard along its patrol path, reversing direction at its endpoints or when hitting a wall
      */
     private void patrolMove() {
         int dx = 0, dy = 0;
 
         if (horizontalPatrol) {
             dx = patrolForward ? 1 : -1;
+
+            // reverse if hitting a wall or reached endpoint
+            if (!map.isWalkable(y, x + dx) || x + dx > patrolEndX || x + dx < patrolStartX) {
+                patrolForward = !patrolForward;
+                dx = patrolForward ? 1 : -1;
+            }
+
+            // final wall check after reversal
             if (!map.isWalkable(y, x + dx)) dx = 0;
 
-            if (x + dx > patrolEndX) patrolForward = false;
-            else if (x + dx < patrolStartX) patrolForward = true;
         } else {
             dy = patrolForward ? 1 : -1;
-            if (!map.isWalkable(y + dy, x)) dy = 0;
 
-            if (y + dy > patrolEndY) patrolForward = false;
-            else if (y + dy < patrolStartY) patrolForward = true;
+            // reverse if hitting a wall or reached endpoint
+            if (!map.isWalkable(y + dy, x) || y + dy > patrolEndY || y + dy < patrolStartY) {
+                patrolForward = !patrolForward;
+                dy = patrolForward ? 1 : -1;
+            }
+
+            // final wall check after reversal
+            if (!map.isWalkable(y + dy, x)) dy = 0;
         }
 
         move(dx, dy);
@@ -188,28 +370,43 @@ public class Guard extends Entity {
      * @param player the player to chase
      */
     private void chasePlayer(Player player) {
-        int distanceToPlayer =
-                Math.abs(player.getX() - x)
-                        + Math.abs(player.getY() - y);
+        int distanceFromHome =
+            Math.abs(x - patrolStartX)
+                    + Math.abs(y - patrolStartY);
 
-        if (distanceToPlayer > agroRange) {
+        if (distanceFromHome > chaseRange) {
             state = GuardState.RETURNING;
             return;
         }
 
-        //catch the player if on the same tile
+        // catch the player if on the same tile
         if (x == player.getX() && y == player.getY()) {
-            player.loseLife();
+            if (damageCooldown <= 0) {
+                player.loseLife();
+                damageCooldown = DAMAGE_COOLDOWN_FRAMES;
+            }
             return;
         }
 
         int dx = 0, dy = 0;
 
+        // try preferred direction first
         if (player.getX() != x)
             dx = (player.getX() > x) ? 1 : -1;
         else if (player.getY() != y)
             dy = (player.getY() > y) ? 1 : -1;
 
+        // if preferred direction is blocked, try the other axis
+        if (dx != 0 && !map.isWalkable(y, x + dx)) {
+            dx = 0;
+            dy = (player.getY() > y) ? 1 : (player.getY() < y) ? -1 : 0;
+        }
+        if (dy != 0 && !map.isWalkable(y + dy, x)) {
+            dy = 0;
+            dx = (player.getX() > x) ? 1 : (player.getX() < x) ? -1 : 0;
+        }
+
+        // final wall check
         if (!map.isWalkable(y, x + dx)) dx = 0;
         if (!map.isWalkable(y + dy, x)) dy = 0;
 
@@ -217,27 +414,18 @@ public class Guard extends Entity {
     }
 
     /**
-     * moves the guard back to its patrol start position
+     * moves the guard back to its patrol start position using pathfinding
      * transitions to PATROLLING once the start position is reached
      */
     private void returnToPatrol() {
-        int dx = 0, dy = 0;
-
-        if (x < patrolStartX) dx = 1;
-        else if (x > patrolStartX) dx = -1;
-
-        if (y < patrolStartY) dy = 1;
-        else if (y > patrolStartY) dy = -1;
-
-        if (!map.isWalkable(y, x + dx)) dx = 0;
-        if (!map.isWalkable(y + dy, x)) dy = 0;
-
-        move(dx, dy);
-
         if (x == patrolStartX && y == patrolStartY) {
             state = GuardState.PATROLLING;
             patrolForward = true;
+            return;
         }
+
+        int[] step = findNextStep(patrolStartX, patrolStartY);
+        move(step[0], step[1]);
     }
 
     /**
