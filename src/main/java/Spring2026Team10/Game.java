@@ -60,13 +60,7 @@ public class Game implements Runnable {
         map = mapPanel.getPrisonMap();
         Point start = map.getStartTile();
         player = new Player(start.x, start.y, map);
-
         guards = new ArrayList<>();
-        for (Point pos : mapPanel.getGuardSpawns()) { 
-            guards.add(new Guard(pos.x, pos.y, map, Guard.GuardType.PATROL, true, 4));
-        }
-        mapPanel.setGuards(guards);
-        
         powerups = new Powerups();
         hazards = new ArrayList<>();
         rewards = new ArrayList<>();
@@ -91,6 +85,7 @@ public class Game implements Runnable {
         changeState(GameState.MENU);
         gameThread = new Thread(this);
         gameThread.start();
+
     }
 
     public void update() {
@@ -169,7 +164,20 @@ public class Game implements Runnable {
         map.spawnCoins(COINS_PER_MATCH);
         player.reset();
         player.setLives(getDifficulty().getLives());
-        guards.forEach(g -> {}); // placeholder in case guards have reset logic later
+        guards.clear();
+        int guardCount = 5;
+        int zoneCols = 3;
+        int zoneRows = 2;
+        for (int i = 0; i < guardCount; i++) {
+            int zoneCol = i % zoneCols;
+            int zoneRow = i / zoneCols;
+            guards.add(Guard.spawnRandomGuard(
+                map, Guard.GuardType.PATROL, guards, player,
+                i % 2 == 0, 12,
+                zoneCol, zoneRow, zoneCols, zoneRows
+            ));
+        }
+        mapPanel.setGuards(guards);        
         matchStartMillis = System.currentTimeMillis();
         keyHandler.clear();
         updateHud();
