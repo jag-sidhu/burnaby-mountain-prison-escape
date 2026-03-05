@@ -13,6 +13,7 @@ public class Player extends Entity {
     private int lives = 3;
     private int score = 0;
     private int rewards = 0;
+    private final java.util.EnumSet<RewardType> collectedRewards = java.util.EnumSet.noneOf(RewardType.class);
     private boolean handsTiedActive = false;
     private int handsTiedDuration = 0;
     private boolean isSlowed = false;
@@ -53,6 +54,8 @@ public class Player extends Entity {
         
         lives = 3;
         score = 0;
+        rewards = 0;
+        collectedRewards.clear();
         speedBoostActive = false;
         speedBoostDuration = 0;
         handsTiedActive = false;
@@ -126,8 +129,18 @@ public class Player extends Entity {
         rewards++;
     }
 
+    public void collectReward(RewardType rewardType) {
+        if (collectedRewards.add(rewardType)) {
+            rewards++;
+        }
+    }
+
     public int getReward() {
         return rewards;
+    }
+
+    public boolean hasCollectedReward(RewardType rewardType) {
+        return collectedRewards.contains(rewardType);
     }
 
     // Hazard methods

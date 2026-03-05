@@ -39,21 +39,21 @@ public class Rewards {
             case LAPTOP:
                 player.gainScore(bonus);
                 player.activateSpeedBoost(30); //Apply a 1-second speed boost
-                player.addReward();
+                player.collectReward(RewardType.LAPTOP);
                 System.out.println("Congratulations! You got the laptop! You have earned " + bonus + " points!");
                 break;
 
             case STUDENT_ID:
                 player.gainScore(bonus);
                 player.activateSpeedBoost(30); //Apply a 1-second speed boost
-                player.addReward();
+                player.collectReward(RewardType.STUDENT_ID);
                 System.out.println("Congratulations! You got your student id! You have earned " + bonus + " points!");
                 break;
 
             case RACCOON:
                 player.gainScore(bonus);
                 player.activateSpeedBoost(30); //Apply a 1-second speed boost
-                player.addReward();
+                player.collectReward(RewardType.RACCOON);
                 System.out.println("Congratulations! You got found a pet raccoon! You have earned " + bonus + " points!");
                 break;
         }

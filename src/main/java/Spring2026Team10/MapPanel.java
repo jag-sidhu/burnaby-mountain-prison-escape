@@ -28,9 +28,9 @@ public class MapPanel extends JPanel {
     private static final Color GRID_COLOR = new Color(60, 60, 60);
     private static final Color COIN_COLOR = new Color(242, 188, 34);
     private static final Color COIN_BORDER_COLOR = new Color(178, 131, 22);
-    private static final Color HUD_PANEL_BG = new Color(22, 28, 36, 178);
-    private static final Color HUD_PANEL_BORDER = new Color(210, 220, 235, 110);
-    private static final Color HUD_PANEL_SHADOW = new Color(0, 0, 0, 80);
+    private static final Color HUD_PANEL_BG = new Color(10, 14, 20, 215);
+    private static final Color HUD_PANEL_BORDER = new Color(210, 220, 235, 150);
+    private static final Color HUD_PANEL_SHADOW = new Color(0, 0, 0, 120);
     private static final Color HUD_TEXT_COLOR = new Color(243, 246, 251, 235);
     private static final int HUD_HEIGHT = 0;
     private static final int UI_FONT_SIZE = Math.max(15, Math.round(CELL_SIZE * 1.75f));
@@ -54,6 +54,7 @@ public class MapPanel extends JPanel {
     private final Map<Entity.Direction, BufferedImage[]> guardSprites = new EnumMap<>(Entity.Direction.class);
     private final Map<HazardType, BufferedImage> hazardSprites = new EnumMap<>(HazardType.class);
     private final Map<RewardType, BufferedImage> rewardSprites = new EnumMap<>(RewardType.class);
+    private final Map<RewardType, BufferedImage> rewardEmptySprites = new EnumMap<>(RewardType.class);
     private BufferedImage heartFilledSprite;
     private BufferedImage heartEmptySprite;
 
@@ -125,8 +126,11 @@ public class MapPanel extends JPanel {
         rewardSprites.put(RewardType.LAPTOP, loadSprite("/sprites/rewards/laptop.png"));
         rewardSprites.put(RewardType.STUDENT_ID, loadSprite("/sprites/rewards/studentID.png"));
         rewardSprites.put(RewardType.RACCOON, loadSprite("/sprites/rewards/raccoon.png"));
+        rewardEmptySprites.put(RewardType.LAPTOP, brightenEmptySprite(loadSprite("/sprites/rewards/laptop_empty.png")));
+        rewardEmptySprites.put(RewardType.STUDENT_ID, brightenEmptySprite(loadSprite("/sprites/rewards/studentID_empty.png")));
+        rewardEmptySprites.put(RewardType.RACCOON, brightenEmptySprite(loadSprite("/sprites/rewards/raccoon_empty.png")));
         heartFilledSprite = loadSprite("/sprites/HUD/Heart_Fill.png");
-        heartEmptySprite = loadSprite("/sprites/HUD/Heart_Empty.png");
+        heartEmptySprite = brightenEmptySprite(loadSprite("/sprites/HUD/Heart_Empty.png"));
     }
 
     private BufferedImage[] loadFrames(String frame1, String frame2) {
@@ -144,6 +148,35 @@ public class MapPanel extends JPanel {
             System.out.println("Missing: " + resourcePath);
             return null;
         }
+    }
+
+    private BufferedImage brightenEmptySprite(BufferedImage source) {
+        if (source == null) {
+            return null;
+        }
+        int width = source.getWidth();
+        int height = source.getHeight();
+        BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int argb = source.getRGB(x, y);
+                int a = (argb >>> 24) & 0xFF;
+                if (a == 0) {
+                    output.setRGB(x, y, argb);
+                    continue;
+                }
+                int r = (argb >>> 16) & 0xFF;
+                int g = (argb >>> 8) & 0xFF;
+                int b = argb & 0xFF;
+                if (r <= 70 && g <= 70 && b <= 70) {
+                    int white = (a << 24) | 0xFFFFFF;
+                    output.setRGB(x, y, white);
+                } else {
+                    output.setRGB(x, y, argb);
+                }
+            }
+        }
+        return output;
     }
 
     private BufferedImage selectDirectionalSprite(Map<Entity.Direction, BufferedImage[]> spriteSet, Entity.Direction facing, boolean moving) {
@@ -246,6 +279,7 @@ public class MapPanel extends JPanel {
         int scoreBoxY = pad;
         drawScoreBox(g2d, scoreBoxX, scoreBoxY, scoreBoxWidth, boxHeight, scoreText);
 
+        paintRewardsHud(g2d, mapViewWidth, mapViewHeight);
         paintLivesHud(g2d, mapViewWidth, mapViewHeight);
     }
 
@@ -265,6 +299,7 @@ public class MapPanel extends JPanel {
         int totalWidth = (maxLives * heartSize) + ((maxLives - 1) * spacing);
         int startX = mapViewWidth - totalWidth - 12;
         int drawY = mapViewHeight - heartSize - 12;
+        drawHudPanel(g2d, startX - 8, drawY - 6, totalWidth + 16, heartSize + 12);
 
         for (int i = 0; i < maxLives; i++) {
             int x = startX + i * (heartSize + spacing);
@@ -276,6 +311,46 @@ public class MapPanel extends JPanel {
                 g2d.fillOval(x, drawY, heartSize, heartSize);
             }
         }
+    }
+
+    private void paintRewardsHud(Graphics2D g2d, int mapViewWidth, int mapViewHeight) {
+        if (player == null) {
+            return;
+        }
+
+        int iconSize = 34;
+        int spacing = 6;
+        RewardType[] order = {RewardType.LAPTOP, RewardType.STUDENT_ID, RewardType.RACCOON};
+        int totalWidth = (order.length * iconSize) + ((order.length - 1) * spacing);
+        int startX = 12;
+        int drawY = mapViewHeight - iconSize - 12;
+        drawHudPanel(g2d, startX - 8, drawY - 6, totalWidth + 16, iconSize + 12);
+
+        for (int i = 0; i < order.length; i++) {
+            RewardType rewardType = order[i];
+            int x = startX + i * (iconSize + spacing);
+            BufferedImage icon = player.hasCollectedReward(rewardType)
+                    ? rewardSprites.get(rewardType)
+                    : rewardEmptySprites.get(rewardType);
+            if (icon != null) {
+                g2d.drawImage(icon, x, drawY, iconSize, iconSize, null);
+            } else {
+                g2d.setColor(player.hasCollectedReward(rewardType)
+                        ? new Color(96, 220, 128)
+                        : new Color(120, 120, 120));
+                g2d.fillRoundRect(x, drawY, iconSize, iconSize, 8, 8);
+            }
+        }
+    }
+
+    private void drawHudPanel(Graphics2D g2d, int x, int y, int width, int height) {
+        int arc = 12;
+        g2d.setColor(HUD_PANEL_SHADOW);
+        g2d.fillRoundRect(x + 2, y + 3, width, height, arc, arc);
+        g2d.setColor(HUD_PANEL_BG);
+        g2d.fillRoundRect(x, y, width, height, arc, arc);
+        g2d.setColor(HUD_PANEL_BORDER);
+        g2d.drawRoundRect(x, y, width, height, arc, arc);
     }
 
     private void paintCoins(Graphics2D g2d) {
