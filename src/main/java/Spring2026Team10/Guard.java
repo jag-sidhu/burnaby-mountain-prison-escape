@@ -29,6 +29,9 @@ public class Guard extends Entity {
     private int agroRange = 5; // number of tiles player must be within to trigger chase
     private int chaseRange = 25; // max tiles guard will chase before giving up
     private int damageCooldown = 0; // frames remaining before guard can damage player again
+    private int[] cachedStep = new int[]{0, 0};
+    private int pathUpdateTimer = 0;
+    private static final int PATH_UPDATE_INTERVAL = 5; // recalculate path every 5 frames
     private static final int DAMAGE_COOLDOWN_FRAMES = 60; // 2 seconds at 30 FPS
 
     /**
@@ -388,29 +391,12 @@ public class Guard extends Entity {
             return;
         }
 
-        int dx = 0, dy = 0;
-
-        // try preferred direction first
-        if (player.getX() != x)
-            dx = (player.getX() > x) ? 1 : -1;
-        else if (player.getY() != y)
-            dy = (player.getY() > y) ? 1 : -1;
-
-        // if preferred direction is blocked, try the other axis
-        if (dx != 0 && !map.isWalkable(y, x + dx)) {
-            dx = 0;
-            dy = (player.getY() > y) ? 1 : (player.getY() < y) ? -1 : 0;
+        pathUpdateTimer++;
+        if (pathUpdateTimer >= PATH_UPDATE_INTERVAL) {
+            cachedStep = findNextStep(player.getX(), player.getY());
+            pathUpdateTimer = 0;
         }
-        if (dy != 0 && !map.isWalkable(y + dy, x)) {
-            dy = 0;
-            dx = (player.getX() > x) ? 1 : (player.getX() < x) ? -1 : 0;
-        }
-
-        // final wall check
-        if (!map.isWalkable(y, x + dx)) dx = 0;
-        if (!map.isWalkable(y + dy, x)) dy = 0;
-
-        move(dx, dy);
+        move(cachedStep[0], cachedStep[1]);
     }
 
     /**
@@ -424,8 +410,12 @@ public class Guard extends Entity {
             return;
         }
 
-        int[] step = findNextStep(patrolStartX, patrolStartY);
-        move(step[0], step[1]);
+        pathUpdateTimer++;
+        if (pathUpdateTimer >= PATH_UPDATE_INTERVAL) {
+            cachedStep = findNextStep(patrolStartX, patrolStartY);
+            pathUpdateTimer = 0;
+        }
+        move(cachedStep[0], cachedStep[1]);
     }
 
     /**
