@@ -149,9 +149,13 @@ public class Game implements Runnable {
         player.reset();
         player.setLives(getDifficulty().getLives());
         guards.clear();
-        int guardCount = 5;
-        int zoneCols = 3;
-        int zoneRows = 2;
+        int guardCount = switch (getDifficulty()) {
+            case EASY -> 5;
+            case MEDIUM -> 6;
+            case HARD -> 7;
+        };
+        int zoneCols = (guardCount <= 5) ? 3 : (guardCount == 6) ? 3 : 4;
+        int zoneRows = (guardCount <= 6) ? 2 : 2;
         for (int i = 0; i < guardCount; i++) {
             int zoneCol = i % zoneCols;
             int zoneRow = i / zoneCols;
