@@ -1,24 +1,40 @@
 package Spring2026Team10;
 
+/**
+ * abstract class for all entities in the game (player and guard)
+ * handles movement and position logic
+ */
 public abstract class Entity {
+    /**
+     * the four directions an entity can face and move in
+     */
     public enum Direction {
         UP, DOWN, LEFT, RIGHT
     }
 
-    //main entity logic, player and guard will extend this
     //tile position
     protected int x; //column
     protected int y; //row
 
-    protected double posX; //for smoother movement
-    protected double posY; //for smoother movement
+    //precise position for smoother movement
+    protected double posX;
+    protected double posY;
 
-    protected double speed = 0.25; // default tiles per frame (reduced for slower movement)
+    /**
+     * movement speed in tiles per frame
+     */
+    protected double speed = 0.25;
 
     protected PrisonMap map;
     protected Direction facing = Direction.DOWN;
     protected boolean moving;
-
+    
+    /**
+     * constructor for entity, initializes position and map reference
+     * @param startX
+     * @param startY
+     * @param map
+     */
     public Entity(int startX, int startY, PrisonMap map) {
         this.x = startX;
         this.y = startY;
@@ -26,7 +42,11 @@ public abstract class Entity {
         this.posY = startY;
         this.map = map;
     }
-    //getter methods so that only Guard and Player can change the x and y values
+    
+    /**
+     * getter methods for position and state
+     * @return integer column index, integer row index, double precise x position, double precise y position, direction facing, boolean moving
+     */
     public int getX() {
         return x;
     }
@@ -48,7 +68,12 @@ public abstract class Entity {
         return moving;
     }
 
-    //movement
+    /**
+     * moves the entity by a certain amount in the x and y directions, checking for collisions with walls
+     * movement is done in small increments to allow for smooth movement and accurate collision detection
+     * @param dx horizontal direction
+     * @param dy vertical direction
+     */
     public void move(double dx, double dy) {
         if (dx > 0) {
             facing = Direction.RIGHT;
@@ -62,10 +87,12 @@ public abstract class Entity {
 
         double startX = posX;
         double startY = posY;
+
+        //scale movement by speed
         double remainingX = dx * speed;
         double remainingY = dy * speed;
 
-        // Move step by step in small increments (0.1 tile increments)
+        //move step by step in small increments (0.1 tile increments)
         double step = 0.1;
         while (Math.abs(remainingX) > 0 || Math.abs(remainingY) > 0) {
             double stepX = Math.min(step, Math.abs(remainingX)) * Math.signum(remainingX);
@@ -73,7 +100,8 @@ public abstract class Entity {
 
             double newPosX = posX + stepX;
             double newPosY = posY + stepY;
-
+            
+            //checks if the new position is walkable (not a wall) before moving there, if it's not walkable it stops movement in that direction
             if (map.isWalkable((int)newPosY, (int)newPosX)) {
                 posX = newPosX;
                 posY = newPosY;
