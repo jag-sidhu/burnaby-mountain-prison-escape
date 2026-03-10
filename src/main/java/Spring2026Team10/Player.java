@@ -4,6 +4,8 @@ package Spring2026Team10;
  * Represents the player character and tracks movement, score, lives, rewards, and status effects.
  */
 public class Player extends Entity {
+    private static final int HIT_INVULNERABILITY_FRAMES = 60;
+
     /**
      * Describes whether the player is currently moving for sprite animation.
      */
@@ -31,6 +33,7 @@ public class Player extends Entity {
     private int invertedDuration = 0;
     private boolean guardsFrozen = false;
     private int frozenDuration = 0;
+    private int hitInvulnerabilityFrames = 0;
 
     //when he grabs the powerups
     private boolean speedBoostActive = false;
@@ -81,6 +84,7 @@ public class Player extends Entity {
         slowedDuration = 0;
         controlsInverted = false;
         invertedDuration = 0;
+        hitInvulnerabilityFrames = 0;
         speed = 0.25; // reset to slow default
         moving = false;
     }
@@ -130,6 +134,10 @@ public class Player extends Entity {
         if (controlsInverted) {
             if (--invertedDuration <= 0) controlsInverted = false;
         }
+
+        if (hitInvulnerabilityFrames > 0) {
+            hitInvulnerabilityFrames--;
+        }
     }
 
     // Player lives and score
@@ -142,10 +150,14 @@ public class Player extends Entity {
     }
 
     /**
-     * Removes one life from the player.
+     * Removes one life from the player and starts the hit invulnerability window.
      */
     public void loseLife() {
+        if (hitInvulnerabilityFrames > 0 || lives <= 0) {
+            return;
+        }
         lives--;
+        hitInvulnerabilityFrames = HIT_INVULNERABILITY_FRAMES;
     }
 
     /**
@@ -206,6 +218,22 @@ public class Player extends Entity {
 
     public boolean isHandsTied() {
         return handsTiedActive;
+    }
+
+    /**
+     * Checks whether the player is currently protected from another hit.
+     * @return True while hit invulnerability is active.
+     */
+    public boolean isInvulnerable() {
+        return hitInvulnerabilityFrames > 0;
+    }
+
+    /**
+     * Checks whether the red damage flash should be visible on the current frame.
+     * @return True when the player should be drawn with the hit flash.
+     */
+    public boolean isHitFlashVisible() {
+        return hitInvulnerabilityFrames > 0 && ((hitInvulnerabilityFrames / 4) % 2 == 0);
     }
 
     /**

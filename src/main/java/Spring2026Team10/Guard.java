@@ -28,11 +28,9 @@ public class Guard extends Entity {
     //chase info
     private int agroRange = 5; // number of tiles player must be within to trigger chase
     private int chaseRange = 25; // max tiles guard will chase before giving up
-    private int damageCooldown = 0; // frames remaining before guard can damage player again
     private int[] cachedStep = new int[]{0, 0};
     private int pathUpdateTimer = 0;
     private static final int PATH_UPDATE_INTERVAL = 5; // recalculate path every 5 frames
-    private static final int DAMAGE_COOLDOWN_FRAMES = 60; // 2 seconds at 30 FPS
 
     /**
      * checks if a position has enough open space to patrol
@@ -313,7 +311,6 @@ public class Guard extends Entity {
      * @param player the player entity to track
      */
     public void update(Player player) {
-        if (damageCooldown > 0) damageCooldown--;
         switch (state) {
             case PATROLLING -> {
                 int distanceToPlayer =
@@ -384,10 +381,7 @@ public class Guard extends Entity {
 
         // catch the player if on the same tile
         if (x == player.getX() && y == player.getY()) {
-            if (damageCooldown <= 0) {
-                player.loseLife();
-                damageCooldown = DAMAGE_COOLDOWN_FRAMES;
-            }
+            player.loseLife();
             return;
         }
 

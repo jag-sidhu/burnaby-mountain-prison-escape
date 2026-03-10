@@ -247,6 +247,36 @@ public class MapPanel extends JPanel {
         return frames[frameIndex];
     }
 
+    private BufferedImage tintSprite(BufferedImage source, Color tint) {
+        if (source == null) {
+            return null;
+        }
+        int width = source.getWidth();
+        int height = source.getHeight();
+        BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int argb = source.getRGB(x, y);
+                int alpha = (argb >>> 24) & 0xFF;
+                if (alpha == 0) {
+                    output.setRGB(x, y, argb);
+                    continue;
+                }
+
+                int red = (argb >>> 16) & 0xFF;
+                int green = (argb >>> 8) & 0xFF;
+                int blue = argb & 0xFF;
+
+                int tintedRed = Math.min(255, (int) (red * 0.35f + tint.getRed() * 0.65f));
+                int tintedGreen = Math.min(255, (int) (green * 0.35f + tint.getGreen() * 0.65f));
+                int tintedBlue = Math.min(255, (int) (blue * 0.35f + tint.getBlue() * 0.65f));
+                int tintedArgb = (alpha << 24) | (tintedRed << 16) | (tintedGreen << 8) | tintedBlue;
+                output.setRGB(x, y, tintedArgb);
+            }
+        }
+        return output;
+    }
+
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -572,12 +602,14 @@ public class MapPanel extends JPanel {
         int px = player.getX() * CELL_SIZE;
         int py = player.getY() * CELL_SIZE;
         BufferedImage sprite = selectDirectionalSprite(playerSprites, player.getFacing(), player.getMovementState() == Player.MovementState.MOVING);
+        boolean hitFlashVisible = player.isHitFlashVisible();
 
         if (sprite != null) {
-            g2d.drawImage(sprite, px, py, CELL_SIZE, CELL_SIZE, null);
+            BufferedImage spriteToDraw = hitFlashVisible ? tintSprite(sprite, new Color(255, 45, 45)) : sprite;
+            g2d.drawImage(spriteToDraw, px, py, CELL_SIZE, CELL_SIZE, null);
         } else {
             int size = CELL_SIZE - 4;
-            g2d.setColor(Color.BLUE);
+            g2d.setColor(hitFlashVisible ? new Color(255, 70, 70) : Color.BLUE);
             g2d.fillOval(px + 2, py + 2, size, size);
         }
 
