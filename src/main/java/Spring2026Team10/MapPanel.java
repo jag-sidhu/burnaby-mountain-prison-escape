@@ -22,6 +22,12 @@ import java.util.Map;
 
 import javax.swing.JPanel;
 
+/**
+ * Renders the map, entities, HUD, and menu overlays for the game.
+ * <p>
+ * This panel also handles mouse clicks for menu, pause, story, and end-screen buttons.
+ * </p>
+ */
 public class MapPanel extends JPanel {
     // Half edge length -> quarter area per tile.
     private static final int CELL_SIZE = 10;
@@ -54,6 +60,8 @@ public class MapPanel extends JPanel {
     private java.util.List<Powerups> powerups = new java.util.ArrayList<>();
     private final Map<Entity.Direction, BufferedImage[]> playerSprites = new EnumMap<>(Entity.Direction.class);
     private final Map<Entity.Direction, BufferedImage[]> guardSprites = new EnumMap<>(Entity.Direction.class);
+    private final Map<GroundType, BufferedImage> groundSprites = new EnumMap<>(GroundType.class);
+    private final Map<MapDecoration, BufferedImage> decorationSprites = new EnumMap<>(MapDecoration.class);
     private final Map<HazardType, BufferedImage> hazardSprites = new EnumMap<>(HazardType.class);
     private final Map<RewardType, BufferedImage> rewardSprites = new EnumMap<>(RewardType.class);
     private final Map<RewardType, BufferedImage> rewardEmptySprites = new EnumMap<>(RewardType.class);
@@ -84,6 +92,10 @@ public class MapPanel extends JPanel {
         this.powerups = powerups;
     }
 
+    /**
+     * Constructs the main map rendering panel and loads the sprite assets used by the game.
+     * @param prisonMap The map to render.
+     */
     public MapPanel(PrisonMap prisonMap) {
         this.prisonMap = prisonMap;
         int width = prisonMap.getCols() * CELL_SIZE + 1;
@@ -118,7 +130,18 @@ public class MapPanel extends JPanel {
         repaint();
     }
 
+    /**
+     * Loads all sprite assets needed for characters, pickups, hazards, and HUD elements.
+     */
     private void loadSprites() {
+        groundSprites.put(GroundType.FLOOR, loadSprite("/sprites/Map/floor.png"));
+        groundSprites.put(GroundType.GRASS, loadSprite("/sprites/Map/grass.png"));
+        groundSprites.put(GroundType.WALL, loadSprite("/sprites/Map/wall.png"));
+        decorationSprites.put(MapDecoration.CELL_BARS, loadSprite("/sprites/Map/cellBars.png"));
+        decorationSprites.put(MapDecoration.BED_TOP, loadSprite("/sprites/Map/bed_top.png"));
+        decorationSprites.put(MapDecoration.BED_BOTTOM, loadSprite("/sprites/Map/bed_bottom.png"));
+        decorationSprites.put(MapDecoration.TOILET, loadSprite("/sprites/Map/toilet.png"));
+
         playerSprites.put(Entity.Direction.DOWN, loadFrames("/sprites/player/Front_1.png", "/sprites/player/Front_2.png"));
         playerSprites.put(Entity.Direction.UP, loadFrames("/sprites/player/Back_1.png", "/sprites/player/Back_2.png"));
         playerSprites.put(Entity.Direction.LEFT, loadFrames("/sprites/player/Left_1.png", "/sprites/player/Left_2.png"));
@@ -166,6 +189,11 @@ public class MapPanel extends JPanel {
         }
     }
 
+    /**
+     * Recolors dark pixels in empty HUD icons so they remain visible over the dark overlay panels.
+     * @param source The original sprite image.
+     * @return A recolored copy of the sprite, or null if the source image was missing.
+     */
     private BufferedImage brightenEmptySprite(BufferedImage source) {
         if (source == null) {
             return null;
@@ -195,6 +223,13 @@ public class MapPanel extends JPanel {
         return output;
     }
 
+    /**
+     * Selects the correct idle or walking frame for the requested entity direction.
+     * @param spriteSet The directional sprite map to read from.
+     * @param facing The direction the entity is facing.
+     * @param moving Whether the entity is currently moving.
+     * @return The sprite frame to draw, or null if no sprite is available.
+     */
     private BufferedImage selectDirectionalSprite(Map<Entity.Direction, BufferedImage[]> spriteSet, Entity.Direction facing, boolean moving) {
         Entity.Direction direction = (facing == null) ? Entity.Direction.DOWN : facing;
         BufferedImage[] frames = spriteSet.get(direction);
@@ -233,6 +268,7 @@ public class MapPanel extends JPanel {
         paintStartEndLabels(worldG2d); // markers drawn over tiles
         paintCoins(worldG2d);
         paintGrid(worldG2d);
+        paintMapDecorations(worldG2d);
         paintPlayer(worldG2d);         // player & guards on top of markers
         paintHazards(worldG2d);
         paintRewards(worldG2d);
@@ -250,12 +286,68 @@ public class MapPanel extends JPanel {
         g2d.dispose();
     }
 
+    /**
+     * Draws the map's visual ground layer independently from gameplay tile state.
+     * @param g2d The graphics context.
+     */
     private void paintTiles(Graphics2D g2d) {
         for (int row = 0; row < prisonMap.getRows(); row++) {
             for (int col = 0; col < prisonMap.getCols(); col++) {
                 TileType tile = prisonMap.getTile(row, col);
-                g2d.setColor(tile.getColor());
-                g2d.fillRect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                GroundType groundType = prisonMap.getGroundType(row, col);
+                BufferedImage sprite = groundSprites.get(groundType);
+                int x = col * CELL_SIZE;
+                int y = row * CELL_SIZE;
+
+                if (sprite != null) {
+                    g2d.drawImage(sprite, x, y, CELL_SIZE, CELL_SIZE, null);
+                } else {
+                    g2d.setColor(tile.getColor());
+                    g2d.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+                }
+            }
+        }
+    }
+
+    /**
+     * Draws decorative sprites that sit on top of the ground layer, such as the starting jail cells.
+     * @param g2d The graphics context.
+     */
+    private void paintMapDecorations(Graphics2D g2d) {
+        for (int row = 0; row < prisonMap.getRows(); row++) {
+            for (int col = 0; col < prisonMap.getCols(); col++) {
+                MapDecoration decoration = prisonMap.getDecoration(row, col);
+                if (decoration == MapDecoration.NONE) {
+                    continue;
+                }
+
+                int x = col * CELL_SIZE;
+                int y = row * CELL_SIZE;
+                BufferedImage sprite = decorationSprites.get(decoration);
+                if (sprite != null) {
+                    g2d.drawImage(sprite, x, y, CELL_SIZE, CELL_SIZE, null);
+                } else {
+                    paintDecorationFallback(g2d, decoration, x, y);
+                }
+            }
+        }
+    }
+
+    private void paintDecorationFallback(Graphics2D g2d, MapDecoration decoration, int x, int y) {
+        switch (decoration) {
+            case CELL_BARS -> {
+                g2d.setColor(new Color(58, 62, 68));
+                g2d.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+            }
+            case BED_TOP, BED_BOTTOM -> {
+                g2d.setColor(new Color(95, 115, 150));
+                g2d.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+            }
+            case TOILET -> {
+                g2d.setColor(new Color(205, 210, 215));
+                g2d.fillOval(x + 1, y + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+            }
+            default -> {
             }
         }
     }
@@ -281,6 +373,12 @@ public class MapPanel extends JPanel {
         g2d.drawRect(0, 0, maxX, maxY);
     }
 
+    /**
+     * Draws the timer, score, rewards, and health overlays on top of the world view.
+     * @param g2d The graphics context.
+     * @param mapViewWidth The visible width of the map area in pixels.
+     * @param mapViewHeight The visible height of the map area in pixels.
+     */
     private void paintScreenHud(Graphics2D g2d, int mapViewWidth, int mapViewHeight) {
         int pad = 12;
         int boxHeight = 38;
@@ -330,6 +428,13 @@ public class MapPanel extends JPanel {
         }
     }
 
+    /**
+     * Draws the reward collection tracker in the bottom-left corner.
+     * Filled icons represent collected rewards and empty icons represent missing ones.
+     * @param g2d The graphics context.
+     * @param mapViewWidth The visible width of the map area in pixels.
+     * @param mapViewHeight The visible height of the map area in pixels.
+     */
     private void paintRewardsHud(Graphics2D g2d, int mapViewWidth, int mapViewHeight) {
         if (player == null) {
             return;
@@ -402,7 +507,6 @@ public class MapPanel extends JPanel {
         Point start = prisonMap.getStartTile();
         Point end = prisonMap.getEndTile();
 
-        drawLabelZone(g2d, "Start", 0, start.y - 1, 4, 2);
         drawLabelZone(g2d, "End", prisonMap.getCols() - 4, end.y - 1, 4, 2);
         drawMarker(g2d, start, TileType.START.getColor());
         drawMarker(g2d, end, TileType.END.getColor());
@@ -837,6 +941,11 @@ public class MapPanel extends JPanel {
         return new Rectangle(centerX - 90, centerY + 40, 180, 40);
     }
 
+    /**
+     * Routes a mouse click to the active overlay buttons for the current game state.
+     * @param x The click x-coordinate in panel space.
+     * @param y The click y-coordinate in panel space.
+     */
     private void handleScreenClick(int x, int y) {
         if (game == null) {
             return;
@@ -878,6 +987,11 @@ public class MapPanel extends JPanel {
         }
     }
 
+    /**
+     * Keeps the camera centered on the player by converting the player's tile position into world-space offsets.
+     * @param mapViewWidth The visible width of the map area in pixels.
+     * @param mapViewHeight The visible height of the map area in pixels.
+     */
     private void updateCamera(int mapViewWidth, int mapViewHeight) {
         if (player == null) {
             cameraX = 0f;
@@ -893,6 +1007,12 @@ public class MapPanel extends JPanel {
         cameraY = playerCenterY - (viewHeightInWorld / 2f);
     }
 
+    /**
+     * Draws the dark radial visibility mask centered on the player's screen position.
+     * @param g2d The graphics context.
+     * @param mapViewWidth The visible width of the map area in pixels.
+     * @param mapViewHeight The visible height of the map area in pixels.
+     */
     private void paintFogOfWar(Graphics2D g2d, int mapViewWidth, int mapViewHeight) {
         if (player == null) {
             g2d.setColor(new Color(0, 0, 0, 235));

@@ -42,7 +42,7 @@ public class Rewards {
 
     /**
      * Applies the rewards points and speed boost to the player.
-     * @param player
+     * @param player The player attempting to collect the reward.
      */
     public void applyTo(Player player) {
         if (!active) {

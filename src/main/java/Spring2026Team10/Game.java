@@ -107,6 +107,13 @@ public class Game implements Runnable {
 
     }
 
+    /**
+     * Runs one frame of gameplay logic.
+     * <p>
+     * Handles pause toggling, player movement, collisions, pickups, guard updates, and win or lose conditions.
+     * If the game is not currently in the playing state, the frame exits early.
+     * </p>
+     */
     public void update() {
         handlePauseToggle();
 
@@ -183,6 +190,13 @@ public class Game implements Runnable {
         updateHud();
     }
 
+    /**
+     * Resets the match state for a fresh attempt.
+     * <p>
+     * Rebuilds collectibles and hazards, resets the player, reapplies the selected difficulty life count,
+     * respawns guards, and refreshes the HUD timer and score.
+     * </p>
+     */
     public void resetGame() {
         map.reset();
         loadEntitiesFromMap();
@@ -280,6 +294,13 @@ public class Game implements Runnable {
         mapPanel.setScoreText(Integer.toString(player.getScore()));
     }
 
+    /**
+     * Populates hazards, rewards, and powerups from the map's generated spawn tiles.
+     * <p>
+     * Hazard types are assigned from a shuffled bag so the map keeps a controlled distribution while
+     * still feeling random from match to match.
+     * </p>
+     */
     private void loadEntitiesFromMap() {
         hazards.clear();
         rewards.clear();
@@ -370,17 +391,26 @@ public class Game implements Runnable {
         playMusic();
     }
 
+    /**
+     * Starts a new playable round from the current menu selection.
+     */
     public void startMatch() {
         resetGame();
         changeState(GameState.PLAYING);
         mapPanel.requestFocusInWindow();
     }
 
+    /**
+     * Restarts the match after a win or loss and resumes the background music.
+     */
     public void restartMatch() {
         playMusic();
         startMatch();
     }
 
+    /**
+     * Resumes gameplay from the pause screen.
+     */
     public void resumeMatch() {
         if (state == GameState.FROZEN) {
             changeState(GameState.PLAYING);
@@ -388,11 +418,17 @@ public class Game implements Runnable {
         }
     }
 
+    /**
+     * Returns the game to the main menu without exiting the application.
+     */
     public void returnToMenu() {
         changeState(GameState.MENU);
         mapPanel.requestFocusInWindow();
     }
 
+    /**
+     * Moves the menu difficulty one step harder, if possible.
+     */
     public void increaseDifficulty() {
         if (difficultyIndex < difficulties.length - 1) {
             difficultyIndex++;
@@ -400,6 +436,9 @@ public class Game implements Runnable {
         }
     }
 
+    /**
+     * Moves the menu difficulty one step easier, if possible.
+     */
     public void decreaseDifficulty() {
         if (difficultyIndex > 0) {
             difficultyIndex--;
@@ -407,14 +446,26 @@ public class Game implements Runnable {
         }
     }
 
+    /**
+     * Gets the currently selected difficulty.
+     * @return The active difficulty setting.
+     */
     public Difficulty getDifficulty() {
         return difficulties[difficultyIndex];
     }
 
+    /**
+     * Gets the display label for the current difficulty.
+     * @return The difficulty name shown in the menu.
+     */
     public String getDifficultyLabel() {
         return getDifficulty().getLabel();
     }
 
+    /**
+     * Gets the game's current state.
+     * @return The active game state.
+     */
     public GameState getState() {
         return state;
     }
@@ -424,6 +475,12 @@ public class Game implements Runnable {
         System.exit(0);
     }
 
+    /**
+     * Toggles between playing and paused when escape is pressed once.
+     * <p>
+     * The previous key state is tracked so holding escape does not rapidly flip between states.
+     * </p>
+     */
     private void handlePauseToggle() {
         boolean escDown = keyHandler.escapePressed;
         if (escDown && !escPressedLastFrame) {

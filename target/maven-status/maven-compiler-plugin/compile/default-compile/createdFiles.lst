@@ -1,5 +1,5 @@
 Spring2026Team10\Rewards$1.class
-Spring2026Team10\HUD.class
+Spring2026Team10\MapDecoration.class
 Spring2026Team10\Powerups.class
 Spring2026Team10\Hazard.class
 Spring2026Team10\Main.class
@@ -8,6 +8,7 @@ Spring2026Team10\HazardType.class
 Spring2026Team10\KeyHandler.class
 Spring2026Team10\TileType.class
 Spring2026Team10\Player$StatusState.class
+Spring2026Team10\GroundType.class
 Spring2026Team10\Game.class
 Spring2026Team10\Player.class
 Spring2026Team10\Guard$GuardType.class
@@ -16,12 +17,15 @@ Spring2026Team10\RewardType.class
 Spring2026Team10\Rewards.class
 Spring2026Team10\Entity$Direction.class
 Spring2026Team10\Guard$GuardState.class
-Spring2026Team10\MapPreviewFrame.class
 Spring2026Team10\MapPanel$2.class
 Spring2026Team10\Game$Difficulty.class
 Spring2026Team10\Player$MovementState.class
+Spring2026Team10\Powerups$1.class
 Spring2026Team10\Entity.class
+Spring2026Team10\GameConstructor.class
 Spring2026Team10\MapPanel.class
+Spring2026Team10\PowerupType.class
 Spring2026Team10\PrisonMap.class
 Spring2026Team10\MapPanel$1.class
 Spring2026Team10\Hazard$1.class
+Spring2026Team10\Sound.class
