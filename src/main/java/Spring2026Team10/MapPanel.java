@@ -700,16 +700,18 @@ public class MapPanel extends JPanel {
         int currentChars = (int) (elapsed / msPerChar);
 
         String l1 = "It's been months.";
-        String l2 = "You were charged with multiple counts of using A.I on assignments, and one count of cheating on your midterm.";
+        String l2a = "You were charged with multiple counts of using A.I on assignments...";
+        String l2b = "and one count of cheating on your midterm.";
         String l3 = "But the summer is approaching... you cant miss it.";
         String l4 = "YOU MUST ESCAPE";
-        String l5 = "Collect your belonging and head towards the exit!";
+        String l5 = "Collect your belonging and find the exit! Watch out for guards.";
         String exitPrompt = "Click anywhere to continue...";
 
         g2d.setColor(Color.WHITE);
         g2d.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 19));
-        currentChars = drawTypeText(g2d, l1, currentChars, centerX, centerY - 80);
-        currentChars = drawTypeText(g2d, l2, currentChars, centerX, centerY - 30);
+        currentChars = drawTypeText(g2d, l1, currentChars, centerX, centerY - 100);
+        currentChars = drawTypeText(g2d, l2a, currentChars, centerX, centerY - 50);
+        currentChars = drawTypeText(g2d, l2b, currentChars, centerX, centerY - 20);
         currentChars = drawTypeText(g2d, l3, currentChars, centerX, centerY + 20);
 
         g2d.setColor(Color.RED);
@@ -718,7 +720,7 @@ public class MapPanel extends JPanel {
 
         g2d.setColor(Color.WHITE);
         g2d.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 19));
-        currentChars = drawTypeText(g2d, l5, currentChars, centerX, centerY + 120);
+        currentChars = drawTypeText(g2d, l5, currentChars, centerX, centerY + 130);
 
         if (currentChars > 0) {
             g2d.setFont(new Font(Font.SANS_SERIF, Font.ITALIC, 16));
@@ -843,24 +845,32 @@ public class MapPanel extends JPanel {
         GameState state = game.getState();
         if (state == GameState.MENU) {
             if (getMenuStartButtonRect().contains(x, y)) {
+                game.playSoundEffect(8);
                 game.displayStory();
             } else if (getMenuExitButtonRect().contains(x, y)) {
+                game.playSoundEffect(8);
                 game.exitGame();
             } else if (getDifficultyLeftButtonRect().contains(x, y)) {
+                game.playSoundEffect(8);
                 game.decreaseDifficulty();
             } else if (getDifficultyRightButtonRect().contains(x, y)) {
+                game.playSoundEffect(8);
                 game.increaseDifficulty();
             }
         } else if (state == GameState.FROZEN) {
             if (getPauseResumeButtonRect().contains(x, y)) {
+                game.playSoundEffect(8);
                 game.resumeMatch();
             } else if (getPauseMenuButtonRect().contains(x, y)) {
+                game.playSoundEffect(8);
                 game.returnToMenu();
             }
         } else if (state == GameState.GAME_OVER || state == GameState.LEVEL_COMPLETE) {
             if (getEndRestartButtonRect().contains(x, y)) {
+                game.playSoundEffect(8);
                 game.restartMatch();
             } else if (getEndMenuButtonRect().contains(x, y)) {
+                game.playSoundEffect(8);
                 game.returnToMenu();
             }
         } else if (state == GameState.STORY) {

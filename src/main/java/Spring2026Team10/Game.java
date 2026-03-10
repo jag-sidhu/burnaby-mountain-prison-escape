@@ -58,6 +58,10 @@ public class Game implements Runnable {
     private long matchStartMillis;
     private boolean escPressedLastFrame = false;
 
+    //Sound
+    Sound music = new Sound();
+    Sound sound = new Sound();
+
     //Set FPS
     int FPS = 30;
 
@@ -110,9 +114,13 @@ public class Game implements Runnable {
             return;
         }
 
+        int livesBefore = player.getLives();
+
         player.update(keyHandler);
+
         if (map.collectCoin(player.getY(), player.getX())) {
             player.gainScore(10);
+            playSoundEffect(2);
         }
 
         if (!player.isGuardsFrozen()) {
@@ -124,6 +132,11 @@ public class Game implements Runnable {
         for (Powerups p : powerups) {
             if (p.isActive() && player.getX() == (int)p.getX() && player.getY() == (int)p.getY()) {
                 p.applyTo(player);
+                if (p.getType() == PowerupType.COFFEE) {
+                    playSoundEffect(4);
+                } else {
+                    playSoundEffect(2);
+                }
             }
         }
 
@@ -131,23 +144,39 @@ public class Game implements Runnable {
             // If player is on the exact same tile and hazard is active
             if (h.isActive() && player.getX() == (int)h.getX() && player.getY() == (int)h.getY()) {
                 h.applyTo(player);
+                if(h.getHazardType() == HazardType.BEAR) {
+                    playSoundEffect(1);
+                } else if(h.getHazardType() == HazardType.HANDCUFFS) {
+                    playSoundEffect(6);
+                } else {
+                    playSoundEffect(3);
+                }
             }
         }
 
         for (Rewards r : rewards) {
-            // If player is on the exact same tile and hazard is active
+            // If player is on the exact same tile and reward is active
             if (r.isActive() && player.getX() == (int)r.getX() && player.getY() == (int)r.getY()) {
                 r.applyTo(player);
+                playSoundEffect(2);
             }
+        }
+
+        if (player.getLives() < livesBefore) {
+            playSoundEffect(3);
         }
 
         if (player.getLives() <= 0 || player.getScore() < 0) {
             changeState(GameState.GAME_OVER);
+            music.stop();
+            playSoundEffect(7);
             return;
         }
 
-        if (player.getReward() == 3 && (player.getX() == map.getEndTile().x && player.getY() == map.getEndTile().y)) {
+        if (player.getReward() <= 3 && (player.getX() == map.getEndTile().x && player.getY() == map.getEndTile().y)) {
+            stopMusic();
             changeState(GameState.LEVEL_COMPLETE);
+            playSoundEffect(5);
             return;
         }
 
@@ -198,6 +227,11 @@ public class Game implements Runnable {
         if(state == GameState.GAME_OVER && timer != null) {
             timer.stop();
         }
+
+        if (state == GameState.GAME_OVER || state == GameState.LEVEL_COMPLETE || state == GameState.MENU) {
+            stopMusic();
+        }
+
     }
 
     /**
@@ -333,6 +367,7 @@ public class Game implements Runnable {
      */
     public void displayStory() {
         changeState(GameState.STORY);
+        playMusic();
     }
 
     public void startMatch() {
@@ -342,6 +377,7 @@ public class Game implements Runnable {
     }
 
     public void restartMatch() {
+        playMusic();
         startMatch();
     }
 
@@ -384,6 +420,7 @@ public class Game implements Runnable {
     }
 
     public void exitGame() {
+        stopMusic();
         System.exit(0);
     }
 
@@ -398,5 +435,30 @@ public class Game implements Runnable {
             }
         }
         escPressedLastFrame = escDown;
+    }
+
+    /**
+     * Begins playing the background music
+     */
+    public void playMusic() {
+        music.setFile(0);
+        music.play();
+        music.loop();
+    }
+
+    /**
+     * Stops playing the background music
+     */
+    public void stopMusic() {
+        music.stop();
+    }
+
+    /**
+     * Plays a sound effect based on the specified array index
+     * @param i The index of the audio file to load and play from the Sound class.
+     */
+    public void playSoundEffect(int i) {
+        sound.setFile(i);
+        sound.play();
     }
 }
