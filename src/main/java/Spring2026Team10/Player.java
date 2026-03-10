@@ -1,10 +1,19 @@
 package Spring2026Team10;
 
+/**
+ * Represents the player character and tracks movement, score, lives, rewards, and status effects.
+ */
 public class Player extends Entity {
+    /**
+     * Describes whether the player is currently moving for sprite animation.
+     */
     public enum MovementState {
         IDLE, MOVING
     }
 
+    /**
+     * Describes the current hazard effect being shown on the player.
+     */
     public enum StatusState {
         NORMAL, HANDS_TIED, SLOWED, INVERTED_CONTROLS
     }
@@ -31,7 +40,10 @@ public class Player extends Entity {
         super(startX, startY, map);
     }
 
-    //called each frame
+    /**
+     * Updates the player once per frame using the current keyboard input.
+     * @param keyHandler The active keyboard input handler.
+     */
     public void update(KeyHandler keyHandler) {
         //checks the powerups
         updatePowerUps();
@@ -47,7 +59,10 @@ public class Player extends Entity {
         
 
     }
-    //resets the player to the starting point
+
+    /**
+     * Resets the player back to the start tile and clears all temporary effects.
+     */
     public void reset() {
         posX = map.getStartTile().x;
         posY = map.getStartTile().y;
@@ -75,12 +90,19 @@ public class Player extends Entity {
         return this.x == guard.getX() && this.y == guard.getY();
     }
 
+    /**
+     * Activates the temporary speed boost granted by certain pickups.
+     * @param duration The number of update frames the boost should last.
+     */
     public void activateSpeedBoost(int duration) {
         speedBoostActive = true;
         speedBoostDuration = duration;
         speed = 0.5; // double speed while active
     }
 
+    /**
+     * Decrements timers for all temporary player effects and clears them when they expire.
+     */
     private void updatePowerUps() {
         if (guardsFrozen) {
             if (--frozenDuration <= 0) guardsFrozen = false;
@@ -119,14 +141,25 @@ public class Player extends Entity {
         return score;
     }
 
+    /**
+     * Removes one life from the player.
+     */
     public void loseLife() {
         lives--;
     }
 
+    /**
+     * Sets the player's life total, clamped so it never goes below zero.
+     * @param lives The new life total.
+     */
     public void setLives(int lives) {
         this.lives = Math.max(0, lives);
     }
 
+    /**
+     * Adds points to the player's score.
+     * @param amount The number of points to add.
+     */
     public void gainScore(int amount) {
         score += amount;
     }
@@ -135,6 +168,10 @@ public class Player extends Entity {
         rewards++;
     }
 
+    /**
+     * Marks a reward type as collected and increments the completion count once.
+     * @param rewardType The reward that was picked up.
+     */
     public void collectReward(RewardType rewardType) {
         if (collectedRewards.add(rewardType)) {
             rewards++;
@@ -149,11 +186,19 @@ public class Player extends Entity {
         return rewards;
     }
 
+    /**
+     * Checks whether a specific reward has already been collected.
+     * @param rewardType The reward to check.
+     * @return True if the player has already picked up that reward.
+     */
     public boolean hasCollectedReward(RewardType rewardType) {
         return collectedRewards.contains(rewardType);
     }
 
-    // Hazard methods
+    /**
+     * Applies the handcuff effect for a set duration.
+     * @param duration The number of update frames the effect should last.
+     */
     public void tieHands(int duration) {
         handsTiedActive = true;
         handsTiedDuration = duration;
@@ -163,21 +208,37 @@ public class Player extends Entity {
         return handsTiedActive;
     }
 
+    /**
+     * Applies the slowdown effect and reduces movement speed until it expires.
+     * @param duration The number of update frames the slowdown should last.
+     */
     public void applySlowdown(int duration) {
         isSlowed = true;
         slowedDuration = duration;
         speed = 0.25 * 0.70; // 30% reduction
     }
 
+    /**
+     * Reverses movement controls for a set duration.
+     * @param duration The number of update frames the effect should last.
+     */
     public void invertControls(int duration) {
         controlsInverted = true;
         invertedDuration = duration;
     }
 
+    /**
+     * Gets the movement state used by the sprite renderer.
+     * @return MOVING when the player changed position this frame, otherwise IDLE.
+     */
     public MovementState getMovementState() {
         return isMoving() ? MovementState.MOVING : MovementState.IDLE;
     }
 
+    /**
+     * Gets the status effect currently being shown on the player.
+     * @return The highest priority active status effect, or NORMAL if none are active.
+     */
     public StatusState getStatusState() {
         if (handsTiedActive) {
             return StatusState.HANDS_TIED;
@@ -191,17 +252,28 @@ public class Player extends Entity {
         return StatusState.NORMAL;
     }
 
+    /**
+     * Restores one life, up to the maximum HUD limit of three.
+     */
     public void gainLife() {
         if (lives < 3) {
             lives++;
         }
     }
 
+    /**
+     * Freezes guard movement for a set duration.
+     * @param duration The number of update frames the freeze should last.
+     */
     public void freezeGuards(int duration) {
         guardsFrozen = true;
         frozenDuration = duration;
     }
 
+    /**
+     * Checks whether guards are currently frozen by the player.
+     * @return True while the freeze effect is active.
+     */
     public boolean isGuardsFrozen() {
         return guardsFrozen;
     }
