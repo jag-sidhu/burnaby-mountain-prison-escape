@@ -1,5 +1,9 @@
 package Spring2026Team10;
 
+/**
+ * Represents a static hazard entity on the game map.
+ * Hazards apply negative status effects and score penalties to the player upon collision.
+ */
 public class Hazard {
     private float x;
     private float y;
@@ -7,6 +11,14 @@ public class Hazard {
     private int penalty;
     private boolean active;
 
+    /**
+     * Constructs a new Hazard at the specified map coordinates.
+     * The penalty value is automatically assigned based on the provided HazardType.
+     *
+     * @param x The x-coordinate on the map grid.
+     * @param y The y-coordinate on the map grid.
+     * @param hazardType The specific type of hazard to be created.
+     */
     public Hazard(float x, float y, HazardType hazardType) {
         this.x = x;
         this.y = y;
@@ -29,6 +41,12 @@ public class Hazard {
         }
     }
 
+    /**
+     * Applies the hazard's specific penalty and status effect to the player.
+     * Once applied, the hazard is deactivated and cannot be triggered again.
+     *
+     * @param player The player entity that triggered the hazard.
+     */
     public void applyTo(Player player) {
         if (!active) {
             return; 
@@ -63,8 +81,27 @@ public class Hazard {
         this.active = false;
     }
 
+    /**
+     * Gets the x-coordinate of the hazard.
+     * @return The x-coordinate on the map grid.
+     */
     public float getX() { return x; }
+
+    /**
+     * Gets the y-coordinate of the hazard.
+     * @return The y-coordinate on the map grid.
+     */
     public float getY() { return y; }
+
+    /**
+     * Gets the specific type of this hazard.
+     * @return The HazardType enum representing this hazard.
+     */
     public HazardType getHazardType() { return hazardType; }
+
+    /**
+     * Checks if the hazard is currently active and can be triggered.
+     * @return true if the hazard is active, false if it has already been triggered.
+     */
     public boolean isActive() { return active; }
 }

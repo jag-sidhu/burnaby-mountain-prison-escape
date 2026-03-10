@@ -1,5 +1,9 @@
 package Spring2026Team10;
 
+/**
+ * Represents a collectible powerup entity on the game map.
+ * Powerups grant positive status effects, survival bonuses and add to the player's score.
+ */
 public class Powerups {
     private float x;
     private float y;
@@ -7,6 +11,14 @@ public class Powerups {
     private int bonus;
     private boolean active;
 
+    /**
+     * Constructs a new Powerup at the specified map coordinates.
+     * The score bonus is automatically assigned based on the provided PowerupType.
+     *
+     * @param x The x-coordinate on the map grid.
+     * @param y The y-coordinate on the map grid.
+     * @param type The specific type of powerup to be created.
+     */
     public Powerups(float x, float y, PowerupType type) {
         this.x = x;
         this.y = y;
@@ -20,6 +32,13 @@ public class Powerups {
         }
     }
 
+    /**
+     * Applies the powerup's effect and score bonus to the player.
+     * Fails if the player's hands are currently tied by handcuffs.
+     * Once successfully applied, the powerup is deactivated.
+     *
+     * @param player The player entity collecting the powerup.
+     */
     public void applyTo(Player player) {
         if (!active) return;
 
@@ -52,8 +71,27 @@ public class Powerups {
         this.active = false;
     }
 
+    /**
+     * Gets the x-coordinate of the powerup.
+     * @return The x-coordinate on the map grid.
+     */
     public float getX() { return x; }
+
+    /**
+     * Gets the y-coordinate of the powerup.
+     * @return The y-coordinate on the map grid.
+     */
     public float getY() { return y; }
+
+    /**
+     * Gets the specific type of this powerup.
+     * @return The PowerupType enum representing this powerup.
+     */
     public PowerupType getType() { return type; }
+    
+    /**
+     * Checks if the powerup is currently active and available to be collected.
+     * @return true if the powerup is active, false if it has already been collected.
+     */
     public boolean isActive() { return active; }
 }
