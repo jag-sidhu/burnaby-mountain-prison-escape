@@ -173,7 +173,7 @@ public class Game implements Runnable {
             return;
         }
 
-        if (player.getReward() <= 3 && (player.getX() == map.getEndTile().x && player.getY() == map.getEndTile().y)) {
+        if (player.getReward() == 3 && (player.getX() == map.getEndTile().x && player.getY() == map.getEndTile().y)) {
             stopMusic();
             changeState(GameState.LEVEL_COMPLETE);
             playSoundEffect(5);
