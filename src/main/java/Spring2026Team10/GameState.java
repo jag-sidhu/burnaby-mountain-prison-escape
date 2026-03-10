@@ -1,5 +1,8 @@
 package Spring2026Team10;
 
+/**
+ * Defines the possible phases or states the game can be in.
+ */
 public enum GameState {
     MENU,
     READY,
@@ -7,5 +10,6 @@ public enum GameState {
     DYING,
     LEVEL_COMPLETE,
     GAME_OVER,
-    FROZEN
+    FROZEN,
+    STORY
 }

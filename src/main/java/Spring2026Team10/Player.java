@@ -141,6 +141,10 @@ public class Player extends Entity {
         }
     }
 
+    /**
+     * Returns the amount of rewards the player has collected, 0 - 3.
+     * @return The total number of rewards the player has calculated.
+     */
     public int getReward() {
         return rewards;
     }

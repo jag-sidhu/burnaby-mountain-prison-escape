@@ -1,5 +1,13 @@
 package Spring2026Team10;
 
+/**
+ * represents the collectible reward within the game.
+ * <p>
+ *     Rewards grant the player with points, a temporary speed boost, and are required to complete the game.
+ *     Each reward has a specific point value. Rewards cannot be collected if the player is suffering from a hands-tied
+ *     effect.
+ * </p>
+ */
 public class Rewards {
     private float x;
     private float y;
@@ -7,6 +15,12 @@ public class Rewards {
     private int bonus;
     private boolean active;
 
+    /**
+     * Constructs a new Rewards instance at the specified map coordinates.
+     * @param x The x coordinate of the reward on the map grid.
+     * @param y The y coordinate of the reward on the map grid.
+     * @param rewardType The type of reward.
+     */
     public Rewards(float x, float y, RewardType rewardType) {
         this.x = x;
         this.y = y;
@@ -25,6 +39,11 @@ public class Rewards {
                 break;
         }
     }
+
+    /**
+     * Applies the rewards points and speed boost to the player.
+     * @param player
+     */
     public void applyTo(Player player) {
         if (!active) {
             return;
@@ -61,8 +80,27 @@ public class Rewards {
         this.active = false;
     }
 
+    /**
+     * Gets the x coordinate of the reward.
+     * @return The x coordinate position of the reward on the map grid.
+     */
     public float getX() { return x; }
+
+    /**
+     * Gets the y coordinate of the reward.
+     * @return The y coordinate position of the reward on the map grid.
+     */
     public float getY() { return y; }
+
+    /**
+     * Gets the specific rewardType of the reward item.
+     * @return The rewardType representing the item.
+     */
     public RewardType getRewardType() { return rewardType; }
+
+    /**
+     * Checks if the reward is currently active and available to be collected.
+     * @return True if the reward has not yet been collected. False if the reward has already been collected.
+     */
     public boolean isActive() { return active; }
 }

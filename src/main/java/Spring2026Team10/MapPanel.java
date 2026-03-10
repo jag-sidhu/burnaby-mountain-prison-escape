@@ -47,6 +47,7 @@ public class MapPanel extends JPanel {
     private String scoreText = "XXX";
     private float cameraX = 0f;
     private float cameraY = 0f;
+    private long storyStartTime = 0;
 
     private java.util.List<Hazard> hazards = new java.util.ArrayList<>();
     private java.util.List<Rewards> rewards = new java.util.ArrayList<>();
@@ -71,6 +72,10 @@ public class MapPanel extends JPanel {
         this.hazards = hazards;
     }
 
+    /**
+     * Updates the list of active rewards to be rendered on the map.
+     * @param rewards The lust of Rewards objects to be tracked and displayed on the map.
+     */
     public void setRewards(java.util.List<Rewards> rewards) {
         this.rewards = rewards;
     }
@@ -589,6 +594,10 @@ public class MapPanel extends JPanel {
     }
 
     private void paintOverlay(Graphics2D g2d, GameState state) {
+        if (state != GameState.STORY) {
+            storyStartTime = 0;
+        }
+
         if (state == GameState.MENU) {
             paintMenuOverlay(g2d);
         } else if (state == GameState.FROZEN) {
@@ -597,6 +606,8 @@ public class MapPanel extends JPanel {
             paintEndOverlay(g2d, "You Lost");
         } else if (state == GameState.LEVEL_COMPLETE) {
             paintEndOverlay(g2d, "You Win");
+        } else if (state == GameState.STORY) {
+            paintStoryLine(g2d);
         }
     }
 
@@ -662,6 +673,103 @@ public class MapPanel extends JPanel {
 
         drawButton(g2d, getPauseResumeButtonRect(), "Resume");
         drawButton(g2d, getPauseMenuButtonRect(), "Exit To Menu");
+    }
+
+    /**
+     * Renders the story line overlay with a typewritter effect.
+     * <p>
+     *     This darkens the background and calculates how many charecters of the story should be visible based on the
+     *     time elsapsed since the method was called.
+     * </p>
+     * @param g2d The Graphics2D context used for drawing the overlay and text.
+     */
+    public void paintStoryLine(Graphics2D g2d) {
+        if (storyStartTime == 0) {
+            storyStartTime = System.currentTimeMillis();
+        }
+
+        int centerX = getWidth() / 2;
+        int centerY = (getHeight() - HUD_HEIGHT) / 2;
+
+        //Darken background
+        g2d.setColor(new Color(0, 0, 0, 200));
+        g2d.fillRect(0, 0, getWidth(), getHeight());
+
+        int msPerChar = 35;
+        long elapsed = System.currentTimeMillis() - storyStartTime;
+        int currentChars = (int) (elapsed / msPerChar);
+
+        String l1 = "It's been months.";
+        String l2 = "You were charged with multiple counts of using A.I on assignments, and one count of cheating on your midterm.";
+        String l3 = "But the summer is approaching... you cant miss it.";
+        String l4 = "YOU MUST ESCAPE";
+        String l5 = "Collect your belonging and head towards the exit!";
+        String exitPrompt = "Click anywhere to continue...";
+
+        g2d.setColor(Color.WHITE);
+        g2d.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 19));
+        currentChars = drawTypeText(g2d, l1, currentChars, centerX, centerY - 80);
+        currentChars = drawTypeText(g2d, l2, currentChars, centerX, centerY - 30);
+        currentChars = drawTypeText(g2d, l3, currentChars, centerX, centerY + 20);
+
+        g2d.setColor(Color.RED);
+        g2d.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 45));
+        currentChars = drawTypeText(g2d, l4, currentChars, centerX, centerY + 80);
+
+        g2d.setColor(Color.WHITE);
+        g2d.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 19));
+        currentChars = drawTypeText(g2d, l5, currentChars, centerX, centerY + 120);
+
+        if (currentChars > 0) {
+            g2d.setFont(new Font(Font.SANS_SERIF, Font.ITALIC, 16));
+            int textWidth = g2d.getFontMetrics().stringWidth(exitPrompt);
+            int textHeight = g2d.getFontMetrics().getAscent();
+
+            int padX = 20;
+            int padY = 10;
+            int boxWidth = textWidth + padX * 2;
+            int boxHeight = textHeight + padY * 2;
+            int boxX = centerX - boxWidth / 2;
+            int boxY = centerY + 165;
+
+            // Box Background
+            g2d.setColor(new Color(30, 30, 30, 200));
+            g2d.fillRoundRect(boxX, boxY, boxWidth, boxHeight, 15, 15);
+
+            // Box Border
+            g2d.setColor(Color.LIGHT_GRAY);
+            g2d.drawRoundRect(boxX, boxY, boxWidth, boxHeight, 15, 15);
+
+            // Type out the prompt text perfectly centered inside the box
+            drawTypeText(g2d, exitPrompt, currentChars, centerX, boxY + (boxHeight / 2));
+        }
+    }
+
+    /**
+     * Helper method to draw a singe line of text with the typewriter effect, while keeping it centered based on the
+     * text's width.
+     * @param g2d The Graphics2D context used for drawing the overlay and text.
+     * @param text The string to be typed
+     * @param currentChars The number of charecters allowed to be drawn
+     * @param centerX The X-coordinate where the center of the full text should be placed
+     * @param centerY The Y-coordinate where the text should be vertically centered.
+     * @return The remaining character allowance after this line's length is subtracted.
+     */
+    private int drawTypeText(Graphics2D g2d, String text, int currentChars, int centerX, int centerY) {
+        int remaining = currentChars - text.length();
+
+        if (currentChars > 0) {
+            int chars = Math.min(currentChars, text.length());
+            String textDraw = text.substring(0, chars);
+
+            int textWidth = g2d.getFontMetrics().stringWidth(text);
+            int startX = centerX - (textWidth / 2);
+            int drawY = centerY + (g2d.getFontMetrics().getAscent() / 3);
+
+            g2d.drawString(textDraw, startX, drawY);
+        }
+
+        return remaining;
     }
 
     private void drawButton(Graphics2D g2d, Rectangle rect, String text) {
@@ -735,7 +843,7 @@ public class MapPanel extends JPanel {
         GameState state = game.getState();
         if (state == GameState.MENU) {
             if (getMenuStartButtonRect().contains(x, y)) {
-                game.startMatch();
+                game.displayStory();
             } else if (getMenuExitButtonRect().contains(x, y)) {
                 game.exitGame();
             } else if (getDifficultyLeftButtonRect().contains(x, y)) {
@@ -755,6 +863,8 @@ public class MapPanel extends JPanel {
             } else if (getEndMenuButtonRect().contains(x, y)) {
                 game.returnToMenu();
             }
+        } else if (state == GameState.STORY) {
+            game.startMatch();
         }
     }
 

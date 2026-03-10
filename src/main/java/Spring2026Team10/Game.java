@@ -9,7 +9,15 @@ import java.util.List;
 
 import javax.swing.Timer;
 
+/**
+ * The core controller for the game. Manages the game loop, state, and entities.
+ * Implements runnable to execute the main game loop on a thread.
+ * Coordinates the interactions between the player, guards, interactable items (hazards, rewards, powerups), and the map.
+ */
 public class Game implements Runnable {
+    /**
+     * Defines the difficulty levels for the game and defines the number of lives the player has for each level.
+     */
     public enum Difficulty {
         EASY("Easy", 3),
         MEDIUM("Medium", 2),
@@ -53,7 +61,10 @@ public class Game implements Runnable {
     //Set FPS
     int FPS = 30;
 
-
+    /**
+     * Contrasts a new game instance and initializes the game environment
+     * @param mapPanel The map panel responsible for rendering the game map.
+     */
     public Game(MapPanel mapPanel) {
         this.mapPanel = mapPanel;
         state = GameState.MENU;
@@ -81,6 +92,9 @@ public class Game implements Runnable {
         mapPanel.requestFocusInWindow();
     }
 
+    /**
+     * Creates a new game thread and starts the thread.
+     */
     public void start() {
         resetGame();
         changeState(GameState.MENU);
@@ -140,8 +154,6 @@ public class Game implements Runnable {
         updateHud();
     }
 
-    public void handleInput(KeyEvent e) {}
-
     public void resetGame() {
         map.reset();
         loadEntitiesFromMap();
@@ -171,6 +183,10 @@ public class Game implements Runnable {
         updateHud();
     }
 
+    /**
+     *Updates the current state of the game and does the necessary transition logic.
+     * @param state The new state to transition the game to.
+     */
     private void changeState(GameState state) {
         this.state = state;
         if (state != GameState.PLAYING) {
@@ -184,6 +200,15 @@ public class Game implements Runnable {
         }
     }
 
+    /**
+     * The main execution loop for the game thread.
+     * <p>
+     *     Core game running logic. Continuosly cycles as long as GameThread is active. Updaes the game's logic and
+     *     entitites, and calls the repaint method to render the uopdated frame. Maintains a consistent framrate
+     *     defined by FPS. Calculates how long the update and render took and pauses the thread for the remainder of
+     *     the time interval.
+     * </p>
+     */
     @Override
     @SuppressWarnings("BusyWait") // suppress warning about Thread.sleep in loop
     public void run() {
@@ -301,6 +326,13 @@ public class Game implements Runnable {
                 }
             }
         }
+    }
+
+    /**
+     * Transitions the game state to display the story line screen.
+     */
+    public void displayStory() {
+        changeState(GameState.STORY);
     }
 
     public void startMatch() {
