@@ -259,7 +259,7 @@ public class PrisonMap {
 
         placeDecorativeWall(top + 1, left + 1, MapDecoration.BED_TOP);
         placeDecorativeWall(top + 2, left + 1, MapDecoration.BED_BOTTOM);
-        placeDecorativeWall(top + 3, left + 1, MapDecoration.TOILET);
+        placeDecorativeWall(top + 3, right - 1, MapDecoration.TOILET);
     }
 
     private static int scaleCoord(int value) {
