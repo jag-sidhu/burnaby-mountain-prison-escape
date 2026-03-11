@@ -176,6 +176,9 @@ public class Player extends Entity {
         score += amount;
     }
 
+    /**
+     * Increments the player's total collected rewards count by one.
+     */
     public void addReward() {
         rewards++;
     }
@@ -216,6 +219,10 @@ public class Player extends Entity {
         handsTiedDuration = duration;
     }
 
+    /**
+     * Checks if the player's hands are currently tied by the Handcuffs hazard.
+     * @return true if hands are tied, false otherwise.
+     */
     public boolean isHandsTied() {
         return handsTiedActive;
     }

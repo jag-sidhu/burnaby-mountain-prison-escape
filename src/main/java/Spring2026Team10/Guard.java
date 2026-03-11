@@ -5,10 +5,16 @@ import java.util.List;
 
 public class Guard extends Entity {
 
+    /**
+     * Defines the primary behavior mode for the guard (ex: whether they spawn to patrol or chase).
+     */
     public enum GuardType {
         PATROL, CHASE
     }
 
+    /**
+     * Defines the current momentary action state of the guard.
+     */
     public enum GuardState {
         IDLE, // standing still
         PATROLLING, // moving along path
@@ -434,11 +440,28 @@ public class Guard extends Entity {
         this.agroRange = range;
     }
 
-    //getters
+    /**
+     * Gets the guard's behavior type.
+     * @return The GuardType (PATROL or CHASE).
+     */
     public GuardType getType() { return type; }
+
+    /**
+     * Gets the current action state of the guard.
+     * @return The GuardState representing what the guard is currently doing.
+     */
     public GuardState getState() { return state; }
+
+    /**
+     * Overrides the current state of the guard.
+     * @param state The new GuardState to apply.
+     */
     public void setState(GuardState state) { this.state = state; }
 
+    /**
+     * Checks if the guard is currently engaged in a hostile action (chasing or returning).
+     * @return True if the guard is alert, false if idle or patrolling.
+     */
     public boolean isAlertState() {
         return state == GuardState.CHASING
                 || state == GuardState.RETURNING;
