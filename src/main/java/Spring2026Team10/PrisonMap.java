@@ -64,14 +64,23 @@ public class PrisonMap {
     private final Point endTile = scalePoint(BASE_END_TILE);
     private final Random random = new Random();
 
+    /**
+     * Constructs a new PrisonMap and initializes the grid layouts.
+     */
     public PrisonMap() {
         reset();
     }
 
+    /**
+     * Static update hook for map animations or changes later on.
+     */
     public static void update() {
         // Static map for now.
     }
 
+    /**
+     * Fully resets the map to its initial state, clearing all items, coins, and restoring default tiles.
+     */
     public final void reset() {
         for (int row = 0; row < ROWS; row++) {
             Arrays.fill(tiles[row], TileType.FLOOR);
@@ -95,14 +104,28 @@ public class PrisonMap {
         setTile(endTile.y, endTile.x, TileType.END);
     }
 
+    /**
+     * Gets the total number of rows in the map grid.
+     * @return The integer row count.
+     */
     public int getRows() {
         return ROWS;
     }
 
+    /**
+     * Gets the total number of columns in the map grid.
+     * @return The integer column count.
+     */
     public int getCols() {
         return COLS;
     }
 
+    /**
+     * Retrieves the specific logical tile type at a given grid coordinate.
+     * @param row The y-coordinate row.
+     * @param col The x-coordinate column.
+     * @return The TileType at the requested position, or a Wall if out of bounds.
+     */
     public TileType getTile(int row, int col) {
         if (!isInside(row, col)) {
             return TileType.WALL;
@@ -127,7 +150,7 @@ public class PrisonMap {
      * Gets the decorative sprite placed on the specified map tile.
      * @param row The row index to query.
      * @param col The column index to query.
-     * @return The decoration placed at that tile, or NONE if there is none.
+     * @return The decoration placed at that tile, or None if there is none.
      */
     public MapDecoration getDecoration(int row, int col) {
         if (!isInside(row, col)) {
@@ -136,14 +159,26 @@ public class PrisonMap {
         return decorations[row][col];
     }
 
+    /**
+     * Retrieves a copy of the designated starting coordinate.
+     * @return A Point representing the start tile.
+     */
     public Point getStartTile() {
         return new Point(startTile);
     }
 
+    /**
+     * Retrieves a copy of the designated exit coordinate.
+     * @return A Point representing the end tile.
+     */
     public Point getEndTile() {
         return new Point(endTile);
     }
 
+    /**
+     * Randomly distributes a specified number of coins across walkable floor tiles.
+     * @param coinCount The number of coins to spawn.
+     */
     public void spawnCoins(int coinCount) {
         clearCoins();
 
@@ -164,10 +199,22 @@ public class PrisonMap {
         }
     }
 
+    /**
+     * Checks if a coin is currently present at a specific coordinate.
+     * @param row The y-coordinate row.
+     * @param col The x-coordinate column.
+     * @return True if a coin exists at the location, false otherwise.
+     */
     public boolean hasCoin(int row, int col) {
         return isInside(row, col) && coins[row][col];
     }
 
+    /**
+     * Attempts to collect a coin at the specified coordinate.
+     * @param row The y-coordinate row.
+     * @param col The x-coordinate column.
+     * @return True if a coin was successfully collected, false if no coin was present.
+     */
     public boolean collectCoin(int row, int col) {
         if (!hasCoin(row, col)) {
             return false;
@@ -306,6 +353,12 @@ public class PrisonMap {
         }
     }
 
+    /**
+     * Checks if a specific tile can be walked on by entities.
+     * @param row The y-coordinate row.
+     * @param col The x-coordinate column.
+     * @return True if the tile is walkable, false if it is a wall or out of bounds.
+     */
     public boolean isWalkable(int row, int col) {
         if (!isInside(row, col)) {
             return false;
@@ -313,6 +366,10 @@ public class PrisonMap {
         return getTile(row, col).isWalkable();
     }
 
+    /**
+     * Randomly spawns a specified number of hazards across available floor tiles on the map.
+     * * @param count The total number of hazards to place on the map.
+     */
     public void spawnHazards(int count) {
         List<Point> candidates = new ArrayList<>();
         
@@ -335,6 +392,10 @@ public class PrisonMap {
         }
     }
 
+    /**
+     * Randomly spawns exactly 3 rewards across available floor tiles on the map.
+     * These rewards serve as the primary win condition for the level.
+     */
     public void spawnRewards() {
         List<Point> candidates = new ArrayList<>();
 
@@ -353,6 +414,9 @@ public class PrisonMap {
         }
     }
 
+    /**
+     * Randomly spawns exactly 4 powerups across available floor tiles on the map.
+     */
     public void spawnPowerups() {
         List<Point> candidates = new ArrayList<>();
 

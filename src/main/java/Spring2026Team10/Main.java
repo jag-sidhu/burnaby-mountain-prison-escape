@@ -7,6 +7,10 @@ import javax.swing.JFrame;
  *
  */
 public class Main {
+    /**
+     * The standard execution entry point for the application.
+     * @param args Command line arguments (which we do not use).
+     */
     public static void main(String[] args) {
       GameConstructor game = new GameConstructor();
       game.createGame();

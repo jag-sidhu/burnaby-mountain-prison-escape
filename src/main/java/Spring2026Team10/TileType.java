@@ -2,6 +2,10 @@ package Spring2026Team10;
 
 import java.awt.Color;
 
+/**
+ * Represents the logical state of a grid cell in the game map.
+ * Defines whether a tile can be traversed and its default fallback color.
+ */
 public enum TileType {
     WALL(new Color(36, 46, 58), false),
     FLOOR(new Color(212, 220, 228), true),
@@ -19,10 +23,18 @@ public enum TileType {
         this.walkable = walkable;
     }
 
+    /**
+     * Gets the fallback rendering color for this tile type.
+     * @return The Color object representing the tile.
+     */
     public Color getColor() {
         return color;
     }
 
+    /**
+     * Checks if this tile type allows entity movement.
+     * @return True if entities can walk on it, false if it acts as a barrier.
+     */
     public boolean isWalkable() {
         return walkable;
     }

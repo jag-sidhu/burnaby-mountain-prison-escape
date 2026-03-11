@@ -470,6 +470,9 @@ public class Game implements Runnable {
         return state;
     }
 
+    /**
+     * Stops the background music and forcefully exits the application.
+     */
     public void exitGame() {
         stopMusic();
         System.exit(0);

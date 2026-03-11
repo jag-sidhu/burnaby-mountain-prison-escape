@@ -69,13 +69,23 @@ public class MapPanel extends JPanel {
     private BufferedImage heartFilledSprite;
     private BufferedImage heartEmptySprite;
 
+    /**
+     * Adds a specific map coordinate to the list of potential guard spawn points.
+     * @param col The x-coordinate column.
+     * @param row The y-coordinate row.
+     */
     public void addGuardSpawn(int col, int row) {
         guardSpawns.add(new java.awt.Point(col, row));
     }
     
+    /**
+     * Retrieves the list of all valid guard spawn points on the map.
+     * @return A List of points representing spawn coordinates.
+     */
     public java.util.List<java.awt.Point> getGuardSpawns() {
         return guardSpawns;
     }
+
     public void setHazards(java.util.List<Hazard> hazards) {
         this.hazards = hazards;
     }
@@ -111,20 +121,36 @@ public class MapPanel extends JPanel {
         });
     }
 
+    /**
+     * Updates the HUD to display the current formatted time.
+     * @param timeText The string representing elapsed time.
+     */
     public void setTimeText(String timeText) {
         this.timeText = timeText;
         repaint();
     }
 
+    /**
+     * Updates the HUD to display the player's current score.
+     * @param scoreText The string representing the score.
+     */
     public void setScoreText(String scoreText) {
         this.scoreText = scoreText;
         repaint();
     }
 
+    /**
+     * Retrieves the current prison map data structure.
+     * @return The PrisonMap instance being rendered.
+     */
     public PrisonMap getPrisonMap() {
         return prisonMap;
     }
 
+    /**
+     * Links the panel to the main game engine.
+     * @param game The Game instance controlling the logic.
+     */
     public void setGame(Game game) {
         this.game = game;
         repaint();
@@ -277,6 +303,10 @@ public class MapPanel extends JPanel {
         return output;
     }
 
+    /**
+     * Renders the complete game scene, including tiles, entities, lighting, and UI.
+     * @param g The Graphics context provided by Swing.
+     */
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -523,11 +553,19 @@ public class MapPanel extends JPanel {
         }
     }
 
+    /**
+     * Links the panel to the player entity for rendering and camera tracking.
+     * @param player The Player instance to render.
+     */
     public void setPlayer(Player player) {
         this.player = player;
         repaint();
     }
 
+    /**
+     * Updates the list of active guards to be rendered on the map.
+     * @param guards The list of Guard objects to track and display.
+     */
     public void setGuards(java.util.List<Guard> guards) {
         this.guards = guards;
         repaint();
@@ -665,6 +703,11 @@ public class MapPanel extends JPanel {
         g2d.fillRect(x + inset, y + inset, CELL_SIZE - (inset * 2), CELL_SIZE - (inset * 2));
     }
 
+    /**
+     * Renders all active hazards onto the map using their specific sprites.
+     * If a sprite is missing, falls back to drawing a yellow circle.
+     * * @param g2d The Graphics2D context used for drawing.
+     */
     private void paintHazards(Graphics2D g2d) {
         if (hazards == null) return;
         for (Hazard hazard : hazards) {
@@ -707,6 +750,11 @@ public class MapPanel extends JPanel {
         }
     }
 
+    /**
+     * Renders all active powerups onto the map using their specific sprites.
+     * If a sprite is missing, falls back to drawing a cyan circle.
+     * * @param g2d The Graphics2D context used for drawing.
+     */
     private void paintPowerups(Graphics2D g2d) {
         if (powerups == null) return;
         
