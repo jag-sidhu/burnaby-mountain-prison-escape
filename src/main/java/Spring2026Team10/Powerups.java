@@ -58,7 +58,7 @@ public class Powerups {
             case SNOWFLAKE:
                 player.gainScore(bonus);
                 player.freezeGuards(150); // Freeze guards for 5 seconds
-                player.showMessage("All Guards are frozen for 5 seconds!", 150);
+                player.showMessage("Snow Day! All Guards are frozen for 5 seconds!", 150);
                 break;
 
             case DOCTORS_NOTE:

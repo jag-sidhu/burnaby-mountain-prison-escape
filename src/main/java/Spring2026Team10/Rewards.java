@@ -73,7 +73,7 @@ public class Rewards {
                 player.gainScore(bonus);
                 player.activateSpeedBoost(30); //Apply a 1-second speed boost
                 player.collectReward(RewardType.RACCOON);
-                player.showMessage("Congratulations! You got found a pet raccoon! You have earned " + bonus + " points!", 90);
+                player.showMessage("Congratulations! You got found your pet raccoon! You have earned " + bonus + " points!", 90);
                 break;
         }
 
