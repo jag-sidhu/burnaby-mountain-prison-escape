@@ -804,7 +804,7 @@ public class MapPanel extends JPanel {
 
         g2d.setColor(Color.WHITE);
         g2d.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 34));
-        drawCenteredText(g2d, "Escape From The Prison", centerX, centerY - 120);
+        drawCenteredText(g2d, "Escape From The Burnaby Mountain Prison", centerX, centerY - 120);
 
         drawButton(g2d, getMenuStartButtonRect(), "Start");
         drawButton(g2d, getMenuExitButtonRect(), "Exit");
