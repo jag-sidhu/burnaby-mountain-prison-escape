@@ -44,7 +44,7 @@ public class Powerups {
 
         // Ensure the player cannot pick up powerups if handcuffed
         if (player.isHandsTied()) {
-            System.out.println("Your hands are tied! Cannot pick up the " + type + "!");
+            player.showMessage("Your hands are tied! Cannot pick up the " + type + ".", 90);
             return;
         }
 
@@ -52,19 +52,19 @@ public class Powerups {
             case COFFEE:
                 player.gainScore(bonus);
                 player.activateSpeedBoost(150); // 5 seconds of double speed (at 30 FPS)
-                System.out.println("Drank Renaissance Coffee! Speed doubled for 5 seconds.");
+                player.showMessage("Drank Renaissance Coffee! Speed doubled for 5 seconds.", 150);
                 break;
 
             case SNOWFLAKE:
                 player.gainScore(bonus);
                 player.freezeGuards(150); // Freeze guards for 5 seconds
-                System.out.println("All Guards are frozen for 5 seconds!");
+                player.showMessage("All Guards are frozen for 5 seconds!", 150);
                 break;
 
             case DOCTORS_NOTE:
                 player.gainScore(bonus);
                 player.gainLife(); // +1 life
-                System.out.println("Doctor's Note applied! Restored 1 life.");
+                player.showMessage("Doctor's Note applied! Restored 1 life.", 90);
                 break;
         }
 

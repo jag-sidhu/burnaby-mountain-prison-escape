@@ -20,7 +20,7 @@ public class Player extends Entity {
         NORMAL, HANDS_TIED, SLOWED, INVERTED_CONTROLS
     }
 
-    //player's stats
+    // Player's stats
     private int lives = 3;
     private int score = 0;
     private int rewards = 0;
@@ -34,8 +34,10 @@ public class Player extends Entity {
     private boolean guardsFrozen = false;
     private int frozenDuration = 0;
     private int hitInvulnerabilityFrames = 0;
+    private String popupMessage = "";
+    private int popupTimer = 0;
 
-    //when he grabs the powerups
+    // When he grabs the powerups
     private boolean speedBoostActive = false;
     private int speedBoostDuration = 0;
 
@@ -137,6 +139,10 @@ public class Player extends Entity {
 
         if (hitInvulnerabilityFrames > 0) {
             hitInvulnerabilityFrames--;
+        }
+
+        if (popupTimer > 0) {
+            popupTimer--;
         }
     }
 
@@ -312,4 +318,18 @@ public class Player extends Entity {
     public boolean isGuardsFrozen() {
         return guardsFrozen;
     }
+
+    /**
+     * Sets a temporary popup message to be displayed on the HUD.
+     * @param message The text to display.
+     * @param duration The number of frames the message should remain visible.
+     */
+    public void showMessage(String message, int duration) {
+        this.popupMessage = message;
+        this.popupTimer = duration;
+    }
+
+    public String getPopupMessage() { return popupMessage; }
+    
+    public boolean isPopupVisible() { return popupTimer > 0; }
 }

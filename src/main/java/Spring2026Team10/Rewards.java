@@ -50,7 +50,7 @@ public class Rewards {
         }
 
         if (player.isHandsTied()) {
-            System.out.println("Your hands are cuffed! You cannot pick up the " + rewardType + " right now.");
+            player.showMessage("Your hands are tied! You cannot pick up the " + rewardType + " right now.", 90);
             return;
         }
 
@@ -59,21 +59,21 @@ public class Rewards {
                 player.gainScore(bonus);
                 player.activateSpeedBoost(30); //Apply a 1-second speed boost
                 player.collectReward(RewardType.LAPTOP);
-                System.out.println("Congratulations! You got the laptop! You have earned " + bonus + " points!");
+                player.showMessage("Congratulations! You got the laptop! You have earned " + bonus + " points!", 90);
                 break;
 
             case STUDENT_ID:
                 player.gainScore(bonus);
                 player.activateSpeedBoost(30); //Apply a 1-second speed boost
                 player.collectReward(RewardType.STUDENT_ID);
-                System.out.println("Congratulations! You got your student id! You have earned " + bonus + " points!");
+                player.showMessage("Congratulations! You got your student id! You have earned " + bonus + " points!", 90);
                 break;
 
             case RACCOON:
                 player.gainScore(bonus);
                 player.activateSpeedBoost(30); //Apply a 1-second speed boost
                 player.collectReward(RewardType.RACCOON);
-                System.out.println("Congratulations! You got found a pet raccoon! You have earned " + bonus + " points!");
+                player.showMessage("Congratulations! You got found a pet raccoon! You have earned " + bonus + " points!", 90);
                 break;
         }
 

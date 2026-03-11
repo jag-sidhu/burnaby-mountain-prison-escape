@@ -456,6 +456,7 @@ public class MapPanel extends JPanel {
 
         paintRewardsHud(g2d, mapViewWidth, mapViewHeight);
         paintLivesHud(g2d, mapViewWidth, mapViewHeight);
+        paintPopupMessage(g2d, mapViewWidth, mapViewHeight);
     }
 
     private void paintLivesHud(Graphics2D g2d, int mapViewWidth, int mapViewHeight) {
@@ -1120,5 +1121,23 @@ public class MapPanel extends JPanel {
 
         g2d.setPaint(fog);
         g2d.fillRect(0, 0, mapViewWidth, mapViewHeight);
+    }
+
+    private void paintPopupMessage(Graphics2D g2d, int mapViewWidth, int mapViewHeight) {
+        if (player != null && player.isPopupVisible()) {
+            String msg = player.getPopupMessage();
+            g2d.setFont(new Font(Font.SANS_SERIF, Font.BOLD, UI_FONT_SIZE));
+            
+            // Calculate box size dynamically based on the string length
+            int textWidth = g2d.getFontMetrics().stringWidth(msg);
+            int boxWidth = textWidth + 40; 
+            int boxHeight = 40;
+            
+            // Center it horizontally, place it just below the top HUD
+            int x = (mapViewWidth - boxWidth) / 2;
+            int y = 70; 
+
+            drawHudBox(g2d, x, y, boxWidth, boxHeight, msg);
+        }
     }
 }

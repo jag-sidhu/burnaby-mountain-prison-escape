@@ -56,25 +56,25 @@ public class Hazard {
             case HANDCUFFS:
                 player.gainScore(-penalty); 
                 player.tieHands(90); // 3 seconds at 30 FPS
-                System.out.println("You just got put in Handcuffs! Lost " + penalty + " points. Unable to collect rewards for 3 seconds.");
+                player.showMessage("You just got put in Handcuffs! Lost " + penalty + " points. Unable to collect rewards for 3 seconds.", 90);
                 break;
 
             case PARKING_TICKET:
                 player.gainScore(-penalty);
                 player.applySlowdown(150); // 5 seconds at 30 FPS
-                System.out.println("You just received a Parking Ticket, slow down! Lost " + penalty + " points. Speed reduced by 30% for 5 seconds.");
+                player.showMessage("You just received a Parking Ticket, slow down! Lost " + penalty + " points. Speed reduced by 30% for 5 seconds.", 150);
                 break;
 
             case BEAR:
                 player.gainScore(-penalty);
                 player.loseLife(); // Player loses 1 out of 3 lives
-                System.out.println("A Bear just attacked you! Lost " + penalty + " points and 1 life!");
+                player.showMessage("A Bear just attacked you! Lost " + penalty + " points and 1 life!", 90);
                 break;
 
             case SPOILED_MILK:
                 player.gainScore(-penalty);
                 player.invertControls(120); // 4 seconds at 30 FPS
-                System.out.println("You just drank Spoiled Milk! Lost " + penalty + " points. Controls inverted for 4 seconds.");
+                player.showMessage("You just drank Spoiled Milk! Lost " + penalty + " points. Controls inverted for 4 seconds.", 120);
                 break;
         }
         
