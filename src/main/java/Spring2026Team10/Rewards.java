@@ -37,6 +37,8 @@ public class Rewards {
             case RACCOON:
                 this.bonus = 100;
                 break;
+            default:
+                break;
         }
     }
 
@@ -74,6 +76,9 @@ public class Rewards {
                 player.activateSpeedBoost(30); //Apply a 1-second speed boost
                 player.collectReward(RewardType.RACCOON);
                 player.showMessage("Congratulations! You got found your pet raccoon! You have earned " + bonus + " points!", 90);
+                break;
+
+            default:
                 break;
         }
 
