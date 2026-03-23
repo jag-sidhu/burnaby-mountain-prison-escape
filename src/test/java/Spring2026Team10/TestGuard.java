@@ -56,4 +56,22 @@ public class TestGuard {
         assertEquals(Guard.GuardState.PATROLLING, guard.getState(),
                 "Guard state should reset to PATROLLING");
     }
+
+    @Test
+    public void testGuardDoesNotMoveWhenIdle() {
+        PrisonMap map = new PrisonMap();
+        Guard guard = new Guard(50, 35, map, Guard.GuardType.PATROL, true, 10);
+        guard.setState(Guard.GuardState.IDLE);
+        Player player = new Player(52, 35, map);
+
+        double initialPosX = guard.getPosX();
+        double initialPosY = guard.getPosY();
+
+        for (int i = 0; i < 10; i++) {
+            guard.update(player);
+        }
+
+        assertEquals(initialPosX, guard.getPosX(), 0.0001, "Idle guard x should not change");
+        assertEquals(initialPosY, guard.getPosY(), 0.0001, "Idle guard y should not change");
+    }
 }
