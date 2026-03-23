@@ -36,4 +36,12 @@ public class TestGuard {
         guard.setState(Guard.GuardState.CHASING);
         assertTrue(guard.isAlertState(), "Guard should be alert when chasing");
     }
+
+    @Test
+    public void testIsAlertStateReturnsFalseWhenPatrolling() {
+        PrisonMap map = new PrisonMap();
+        Guard guard = new Guard(50, 35, map, Guard.GuardType.PATROL, true, 10);
+        guard.setState(Guard.GuardState.PATROLLING);
+        assertFalse(guard.isAlertState(), "Guard should not be alert when patrolling");
+    }
 }
