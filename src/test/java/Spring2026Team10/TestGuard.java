@@ -131,4 +131,19 @@ public class TestGuard {
                     "Guard should not spawn on the player");
         }
     }
+
+    @Test
+    public void testSetAgroRangeAffectsChaseTriggering() {
+        PrisonMap map = new PrisonMap();
+        Guard guard = new Guard(50, 35, map, Guard.GuardType.PATROL, true, 10);
+        guard.setAgroRange(1);
+        Player player = new Player(55, 35, map);
+
+        for (int i = 0; i < 10; i++) {
+            guard.update(player);
+        }
+
+        assertEquals(Guard.GuardState.PATROLLING, guard.getState(),
+                "Guard with small agro range should not chase player far away");
+    }
 }
