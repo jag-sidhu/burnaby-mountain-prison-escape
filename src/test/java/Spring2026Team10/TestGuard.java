@@ -175,4 +175,19 @@ public class TestGuard {
         assertEquals(Guard.GuardState.RETURNING, guard.getState(),
                 "Guard should transition to RETURNING when too far from home");
     }
+
+    @Test
+    public void testGuardDoesNotChaseWhenPlayerIsFarAway() {
+        PrisonMap map = new PrisonMap();
+        Guard guard = new Guard(50, 35, map, Guard.GuardType.PATROL, true, 10);
+        guard.setAgroRange(3);
+        Player player = new Player(70, 35, map); // far outside agro range
+
+        for (int i = 0; i < 10; i++) {
+            guard.update(player);
+        }
+
+        assertEquals(Guard.GuardState.PATROLLING, guard.getState(),
+                "Guard should remain PATROLLING when player is out of agro range");
+    }
 }
