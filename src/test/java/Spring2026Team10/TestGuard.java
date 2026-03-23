@@ -159,4 +159,20 @@ public class TestGuard {
                     "Guard should always be on a walkable tile");
         }
     }
+
+    @Test
+    public void testGuardTransitionsToReturningWhenTooFarFromHome() {
+        PrisonMap map = new PrisonMap();
+        Guard guard = new Guard(50, 35, map, Guard.GuardType.PATROL, true, 10);
+        guard.setState(Guard.GuardState.CHASING);
+        Player player = new Player(90, 35, map); // very far away
+
+        for (int i = 0; i < 200; i++) {
+            guard.update(player);
+            if (guard.getState() == Guard.GuardState.RETURNING) break;
+        }
+
+        assertEquals(Guard.GuardState.RETURNING, guard.getState(),
+                "Guard should transition to RETURNING when too far from home");
+    }
 }
