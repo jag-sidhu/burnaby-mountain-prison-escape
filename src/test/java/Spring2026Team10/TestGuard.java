@@ -74,4 +74,18 @@ public class TestGuard {
         assertEquals(initialPosX, guard.getPosX(), 0.0001, "Idle guard x should not change");
         assertEquals(initialPosY, guard.getPosY(), 0.0001, "Idle guard y should not change");
     }
+
+    @Test
+    public void testPlayerLosesLifeWhenGuardCatchesThem() {
+        PrisonMap map = new PrisonMap();
+        Guard guard = new Guard(50, 35, map, Guard.GuardType.PATROL, true, 10);
+        guard.setState(Guard.GuardState.CHASING);
+        Player player = new Player(50, 35, map);
+        int livesBefore = player.getLives();
+
+        guard.update(player);
+
+        assertTrue(player.getLives() < livesBefore,
+                "Player should lose a life when caught by guard");
+    }
 }
