@@ -146,4 +146,17 @@ public class TestGuard {
         assertEquals(Guard.GuardState.PATROLLING, guard.getState(),
                 "Guard with small agro range should not chase player far away");
     }
+
+    @Test
+    public void testGuardStaysOnWalkableTilesWhilePatrolling() {
+        PrisonMap map = new PrisonMap();
+        Guard guard = new Guard(50, 35, map, Guard.GuardType.PATROL, true, 10);
+        Player player = new Player(80, 35, map); // far away so no chase
+
+        for (int i = 0; i < 50; i++) {
+            guard.update(player);
+            assertTrue(map.isWalkable(guard.getY(), guard.getX()),
+                    "Guard should always be on a walkable tile");
+        }
+    }
 }
