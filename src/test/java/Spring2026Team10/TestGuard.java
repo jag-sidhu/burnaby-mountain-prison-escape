@@ -117,4 +117,18 @@ public class TestGuard {
         assertTrue(map.isWalkable(guard.getY(), guard.getX()),
                 "Spawned guard should be on a walkable tile");
     }
+
+    @Test
+    public void testSpawnRandomGuardDoesNotSpawnOnPlayer() {
+        PrisonMap map = new PrisonMap();
+        Player player = new Player(50, 35, map);
+
+        for (int i = 0; i < 10; i++) {
+            Guard guard = Guard.spawnRandomGuard(
+                    map, Guard.GuardType.PATROL, new java.util.ArrayList<>(), player,
+                    true, 10, 1, 0, 3, 2);
+            assertFalse(guard.getX() == player.getX() && guard.getY() == player.getY(),
+                    "Guard should not spawn on the player");
+        }
+    }
 }
