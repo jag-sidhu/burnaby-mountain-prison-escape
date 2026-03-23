@@ -106,4 +106,15 @@ public class TestGuard {
         assertEquals(livesAfterFirstHit, player.getLives(),
                 "Player should not lose another life while invulnerable");
     }
+
+    @Test
+    public void testSpawnRandomGuardProducesWalkablePosition() {
+        PrisonMap map = new PrisonMap();
+        Guard guard = Guard.spawnRandomGuard(
+                map, Guard.GuardType.PATROL, new java.util.ArrayList<>(), null,
+                true, 10, 0, 0, 3, 2);
+
+        assertTrue(map.isWalkable(guard.getY(), guard.getX()),
+                "Spawned guard should be on a walkable tile");
+    }
 }
