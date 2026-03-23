@@ -86,7 +86,11 @@ public class Player extends Entity {
         slowedDuration = 0;
         controlsInverted = false;
         invertedDuration = 0;
+        guardsFrozen = false;
+        frozenDuration = 0;
         hitInvulnerabilityFrames = 0;
+        popupMessage = "";
+        popupTimer = 0;
         speed = 0.25; // reset to slow default
         moving = false;
     }
