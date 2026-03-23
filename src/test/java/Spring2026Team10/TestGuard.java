@@ -1,0 +1,15 @@
+package Spring2026Team10;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+public class TestGuard {
+
+    @Test
+    public void testGuardConstructorSetsPatrolStateForPatrolType() {
+        PrisonMap map = new PrisonMap();
+        Guard guard = new Guard(50, 35, map, Guard.GuardType.PATROL, true, 10);
+        assertEquals(Guard.GuardState.PATROLLING, guard.getState(),
+                "PATROL type guard should start in PATROLLING state");
+    }
+}
