@@ -19,5 +19,13 @@ public class TestGuard {
         Guard guard = new Guard(50, 35, map, Guard.GuardType.CHASE, true, 10);
         assertEquals(Guard.GuardState.CHASING, guard.getState(),
                 "CHASE type guard should start in CHASING state");
-}
+    }
+
+    @Test
+    public void testGuardSpawnsAtCorrectPosition() {
+        PrisonMap map = new PrisonMap();
+        Guard guard = new Guard(50, 35, map, Guard.GuardType.PATROL, true, 10);
+        assertEquals(50, guard.getX(), "Guard x position does not match spawn");
+        assertEquals(35, guard.getY(), "Guard y position does not match spawn");
+    }
 }
