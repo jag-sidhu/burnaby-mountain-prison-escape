@@ -88,4 +88,22 @@ public class TestGuard {
         assertTrue(player.getLives() < livesBefore,
                 "Player should lose a life when caught by guard");
     }
+
+    @Test
+    public void testPlayerDoesNotLoseLifeWhileInvulnerable() {
+        PrisonMap map = new PrisonMap();
+        Guard guard = new Guard(50, 35, map, Guard.GuardType.PATROL, true, 10);
+        guard.setState(Guard.GuardState.CHASING);
+        Player player = new Player(50, 35, map);
+
+        // first hit triggers invulnerability
+        guard.update(player);
+        int livesAfterFirstHit = player.getLives();
+
+        // second hit should not reduce lives
+        guard.update(player);
+
+        assertEquals(livesAfterFirstHit, player.getLives(),
+                "Player should not lose another life while invulnerable");
+    }
 }
