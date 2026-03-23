@@ -28,4 +28,12 @@ public class TestGuard {
         assertEquals(50, guard.getX(), "Guard x position does not match spawn");
         assertEquals(35, guard.getY(), "Guard y position does not match spawn");
     }
+
+    @Test
+    public void testIsAlertStateReturnsTrueWhenChasing() {
+        PrisonMap map = new PrisonMap();
+        Guard guard = new Guard(50, 35, map, Guard.GuardType.PATROL, true, 10);
+        guard.setState(Guard.GuardState.CHASING);
+        assertTrue(guard.isAlertState(), "Guard should be alert when chasing");
+    }
 }
