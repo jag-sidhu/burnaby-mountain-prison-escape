@@ -44,4 +44,16 @@ public class TestGuard {
         guard.setState(Guard.GuardState.PATROLLING);
         assertFalse(guard.isAlertState(), "Guard should not be alert when patrolling");
     }
+
+    @Test
+    public void testResetRestoresPositionAndState() {
+        PrisonMap map = new PrisonMap();
+        Guard guard = new Guard(50, 35, map, Guard.GuardType.PATROL, true, 10);
+        guard.setState(Guard.GuardState.CHASING);
+        guard.reset();
+        assertEquals(50, guard.getX(), "Guard x should reset to spawn x");
+        assertEquals(35, guard.getY(), "Guard y should reset to spawn y");
+        assertEquals(Guard.GuardState.PATROLLING, guard.getState(),
+                "Guard state should reset to PATROLLING");
+    }
 }
