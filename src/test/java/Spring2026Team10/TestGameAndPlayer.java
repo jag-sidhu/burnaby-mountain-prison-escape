@@ -214,6 +214,57 @@ public class TestGameAndPlayer {
         assertPanelPaints(panel);
     }
 
+    @Test
+    public void testAudio() {
+        //Test music and sound effects run without execptions
+        PrisonMap map = new PrisonMap();
+        MapPanel panel = new MapPanel(map);
+        panel.setSize(panel.getPreferredSize());
+        Game game = new Game(panel);
+
+        assertDoesNotThrow(() -> {
+            game.playMusic();
+            game.stopMusic();
+            game.playSoundEffect(2);
+        }, "Should not throw exception when playing audio");
+    }
+
+    @Test
+    public void testStartGame() {
+        //Test game startup and ensure game is initialized on the correct state
+        PrisonMap map = new PrisonMap();
+        MapPanel panel = new MapPanel(map);
+        panel.setSize(panel.getPreferredSize());
+        Game game = new SilentGame(panel);
+        game.start();
+        assertEquals(GameState.MENU, game.getState(), "GameState should be menu on start");
+    }
+
+    @Test
+    public void testRestart() {
+        //Test the restart method for any execptions
+        PrisonMap map = new PrisonMap();
+        MapPanel panel = new MapPanel(map);
+        panel.setSize(panel.getPreferredSize());
+        Game game = new SilentGame(panel);
+
+        assertDoesNotThrow(() -> game.restartMatch(), "Should not throw exception when restarting");
+    }
+
+    @Test void testThreadInterrupt() {
+        //Interrupt the game thread to test the catch stament
+        PrisonMap map = new PrisonMap();
+        MapPanel panel = new MapPanel(map);
+        panel.setSize(panel.getPreferredSize());
+        Game game = new SilentGame(panel);
+
+        game.start();
+        assertDoesNotThrow(() -> {
+            Game.gameThread.interrupt();
+            Thread.sleep(15);
+        });
+    }
+
     private Player getPlayer(Game game) {
         try {
             Field field = Game.class.getDeclaredField("player");

@@ -281,7 +281,9 @@ public class Game implements Runnable {
                 Thread.sleep((long) remainingTime);
                 nextdraw += drawInterval;
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+               // Restore interrupt in the case of the thread being interrupted and break while loop to shut down, avoid game crashing and throwing errors
+                Thread.currentThread().interrupt();
+                break;
             }
         }
     }
