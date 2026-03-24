@@ -2,8 +2,18 @@ package Spring2026Team10;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+
+
 
 public class TestGuard {
+
+    private PrisonMap map;
+
+    @BeforeEach
+    public void setUp() {
+        map = new PrisonMap();
+    }
 
     @Test
     public void testGuardConstructorSetsPatrolStateForPatrolType() {
@@ -189,5 +199,104 @@ public class TestGuard {
 
         assertEquals(Guard.GuardState.PATROLLING, guard.getState(),
                 "Guard should remain PATROLLING when player is out of agro range");
+    }
+
+    @Test
+    public void testIsAlertStateReturnsTrueWhenReturning() {
+        Guard guard = new Guard(50, 35, map, Guard.GuardType.PATROL, true, 10);
+        guard.setState(Guard.GuardState.RETURNING);
+        assertTrue(guard.isAlertState(), "Guard should be alert when returning");
+    }
+
+    @Test
+    public void testIsAlertStateReturnsFalseWhenIdle() {
+        Guard guard = new Guard(50, 35, map, Guard.GuardType.PATROL, true, 10);
+        guard.setState(Guard.GuardState.IDLE);
+        assertFalse(guard.isAlertState(), "Guard should not be alert when idle");
+    }
+
+    @Test
+    public void testResetRestoresPrecisePosition() {
+        Guard guard = new Guard(50, 35, map, Guard.GuardType.PATROL, true, 10);
+        guard.reset();
+        assertEquals(50, guard.getPosX(), 0.0001, "Guard posX should reset to spawn x");
+        assertEquals(35, guard.getPosY(), 0.0001, "Guard posY should reset to spawn y");
+    }
+
+    @Test
+    public void testGuardTransitionsToChaseWhenPlayerIsClose() {
+        Guard guard = new Guard(50, 35, map, Guard.GuardType.PATROL, true, 10);
+        guard.setAgroRange(10);
+        Player player = new Player(52, 35, map);
+
+        for (int i = 0; i < 10; i++) {
+            guard.update(player);
+        }
+
+        assertEquals(Guard.GuardState.CHASING, guard.getState(),
+                "Guard should switch to CHASING when player is nearby with line of sight");
+    }
+
+    @Test
+    public void testGuardMovesWhilePatrolling() {
+        Guard guard = new Guard(50, 35, map, Guard.GuardType.PATROL, true, 10);
+        Player player = new Player(80, 35, map); // far away so no chase
+        double initialPosX = guard.getPosX();
+
+        for (int i = 0; i < 10; i++) {
+            guard.update(player);
+        }
+
+        assertNotEquals(initialPosX, guard.getPosX(), 0.0001,
+                "Guard should move while patrolling");
+    }
+
+    @Test
+    public void testSpawnRandomGuardDoesNotOverlapExistingGuards() {
+        java.util.List<Guard> guards = new java.util.ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            int zoneCol = i % 3;
+            int zoneRow = i / 3;
+            Guard guard = Guard.spawnRandomGuard(
+                    map, Guard.GuardType.PATROL, guards, null,
+                    true, 10, zoneCol, zoneRow, 3, 2);
+            for (Guard existing : guards) {
+                assertFalse(guard.getX() == existing.getX() && guard.getY() == existing.getY(),
+                        "Guards should not spawn on top of each other");
+            }
+            guards.add(guard);
+        }
+    }
+
+    @Test
+    public void testSpawnRandomGuardReturnsPatrolType() {
+        Guard guard = Guard.spawnRandomGuard(
+                map, Guard.GuardType.PATROL, new java.util.ArrayList<>(), null,
+                true, 10, 0, 0, 3, 2);
+        assertEquals(Guard.GuardType.PATROL, guard.getType(),
+                "Spawned guard should have PATROL type");
+    }
+
+    @Test
+    public void testGameResetSpawnsCorrectNumberOfGuardsForEachDifficulty() {
+        MapPanel panel = new MapPanel(map);
+        Game game = new Game(panel);
+
+        while (!game.getDifficulty().equals(Game.Difficulty.EASY)) {
+            game.decreaseDifficulty();
+        }
+        game.startMatch();
+        assertEquals(GameState.PLAYING, game.getState(),
+                "Game should be PLAYING after startMatch on EASY");
+
+        game.increaseDifficulty();
+        game.startMatch();
+        assertEquals(GameState.PLAYING, game.getState(),
+                "Game should be PLAYING after startMatch on MEDIUM");
+
+        game.increaseDifficulty();
+        game.startMatch();
+        assertEquals(GameState.PLAYING, game.getState(),
+                "Game should be PLAYING after startMatch on HARD");
     }
 }
