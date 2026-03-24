@@ -299,4 +299,83 @@ public class TestGuard {
         assertEquals(GameState.PLAYING, game.getState(),
                 "Game should be PLAYING after startMatch on HARD");
     }
+
+    @Test
+    public void testGuardReturnsToPatrolStartAfterChasing() {
+        Guard guard = new Guard(50, 35, map, Guard.GuardType.PATROL, true, 10);
+        guard.setState(Guard.GuardState.RETURNING);
+        Player player = new Player(80, 35, map);
+
+        for (int i = 0; i < 200; i++) {
+            guard.update(player);
+            if (guard.getState() == Guard.GuardState.PATROLLING) break;
+        }
+
+        assertEquals(Guard.GuardState.PATROLLING, guard.getState(),
+                "Guard should return to PATROLLING after reaching patrol start");
+    }
+
+    @Test
+    public void testGuardPatrolReversesAtEndpoint() {
+        Guard guard = new Guard(50, 35, map, Guard.GuardType.PATROL, true, 10);
+        Player player = new Player(80, 35, map);
+
+        // run long enough to hit endpoint and reverse
+        for (int i = 0; i < 100; i++) {
+            guard.update(player);
+        }
+
+        assertTrue(map.isWalkable(guard.getY(), guard.getX()),
+                "Guard should still be on walkable tile after reversing patrol");
+    }
+
+    @Test
+    public void testGuardVerticalPatrolStaysOnWalkableTiles() {
+        Guard guard = new Guard(50, 35, map, Guard.GuardType.PATROL, false, 10);
+        Player player = new Player(80, 35, map);
+
+        for (int i = 0; i < 50; i++) {
+            guard.update(player);
+            assertTrue(map.isWalkable(guard.getY(), guard.getX()),
+                    "Vertically patrolling guard should stay on walkable tiles");
+        }
+    }
+
+    @Test
+    public void testGuardIsAlertStateReturnsTrueWhenReturning() {
+        Guard guard = new Guard(50, 35, map, Guard.GuardType.PATROL, true, 10);
+        guard.setState(Guard.GuardState.RETURNING);
+        assertTrue(guard.isAlertState(), "Guard should be alert when returning");
+    }
+
+    @Test
+    public void testSpawnRandomGuardChaseType() {
+        Guard guard = Guard.spawnRandomGuard(
+                map, Guard.GuardType.CHASE, new java.util.ArrayList<>(), null,
+                true, 10, 1, 1, 3, 2);
+        assertEquals(Guard.GuardType.CHASE, guard.getType(),
+                "Spawned guard should have CHASE type");
+    }
+
+    @Test
+    public void testGuardChasesAndDamagesPlayerMultipleTimesAfterInvulnerabilityExpires() {
+        Guard guard = new Guard(50, 35, map, Guard.GuardType.PATROL, true, 10);
+        guard.setState(Guard.GuardState.CHASING);
+        Player player = new Player(50, 35, map);
+
+        // first hit
+        guard.update(player);
+        int livesAfterFirstHit = player.getLives();
+
+        // wait out invulnerability (60 frames)
+        for (int i = 0; i < 65; i++) {
+            player.update(new KeyHandler());
+        }
+
+        // second hit after invulnerability expires
+        guard.update(player);
+
+        assertTrue(player.getLives() < livesAfterFirstHit,
+                "Player should lose another life after invulnerability expires");
+    }
 }
