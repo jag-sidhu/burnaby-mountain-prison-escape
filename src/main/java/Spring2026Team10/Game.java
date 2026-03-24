@@ -49,7 +49,6 @@ public class Game implements Runnable {
     // hud removed until we add functionality
     private final List<Guard> guards;
     private final List<Powerups> powerups;
-    private Timer timer;
     static Thread gameThread;
     private final MapPanel mapPanel;
     KeyHandler keyHandler = new KeyHandler();
@@ -59,11 +58,11 @@ public class Game implements Runnable {
     private boolean escPressedLastFrame = false;
 
     //Sound
-    Sound music = new Sound();
-    Sound sound = new Sound();
+    private final Sound music = new Sound();
+    private final Sound sound = new Sound();
 
     //Set FPS
-    int FPS = 30;
+    private final int FPS = 30;
 
     /**
      * Contrasts a new game instance and initializes the game environment
@@ -237,10 +236,6 @@ public class Game implements Runnable {
             escPressedLastFrame = false;
         }
         mapPanel.repaint();
-
-        if(state == GameState.GAME_OVER && timer != null) {
-            timer.stop();
-        }
 
         if (state == GameState.GAME_OVER || state == GameState.LEVEL_COMPLETE || state == GameState.MENU) {
             stopMusic();
