@@ -11,6 +11,15 @@ Zhou, Nick,	nza53@sfu.ca
 
 Escape from the Burnaby Mountain Prison is a 2D tile-based prison escape game written in Java. The player must move through the prison, collect all three rewards, avoid guards and hazards, and reach the exit to win.
 
+Video demo: https://youtu.be/UdoQZyGOStY?si=e-fTa_xbtm_YT8h7
+
+## How to Play
+
+- Use keyboard controls to move the player (WASD/ Arrows)
+- Collect all three rewards
+- Avoid guards and hazards
+- Reach the exit to win the game
+
 ## Build
 
 Build the project from the repository root with:
@@ -75,4 +84,18 @@ JaCoCo coverage reports are generated after the test run and can be found at:
 
 ```text
 target/site/jacoco/index.html
+```
+
+## Documentation (Javadocs)
+
+Generate the Javadoc documentation with: 
+
+```bash
+mvn javadoc:javadoc
+```
+
+The generated documentation can be found at: 
+
+```text
+target/site/reports/apidocs/index.html
 ```
