@@ -99,3 +99,9 @@ The generated documentation can be found at:
 ```text
 target/site/reports/apidocs/index.html
 ```
+
+A Javadoc JAR is also generated: 
+
+```text
+target/Spring2026Team10-1.0-SNAPSHOT-javadoc.jar
+```
