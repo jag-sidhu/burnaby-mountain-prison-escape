@@ -4,8 +4,10 @@
 
 Escape from the Burnaby Mountain Prison is a 2D tile-based prison escape game written in Java. The player must move through the prison, collect all three rewards, avoid guards and hazards, and reach the exit to win.
 
-![Introduction screen](Assets/introduction.png)
-![In-game showing the map and graphics](Assets/gameplay.png)
+<p align="center">
+  <img src="Assets/introduction.png" width="48%" />
+  <img src="Assets/gameplay.png" width="48%" />
+</p>
 
 Video Demo: https://youtu.be/UdoQZyGOStY?si=e-fTa_xbtm_YT8h7
 
