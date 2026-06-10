@@ -20,10 +20,10 @@ My specific contributions included:
 
 ## How to Play
 
-- Use keyboard controls to move the player (WASD/ Arrows)
-- Collect all three rewards
-- Avoid guards and hazards
-- Reach the exit to win the game
+- Use keyboard controls to move the player (WASD / Arrow Keys)
+- Collect all three rewards (Laptop, Pet Raccoon & Student ID)
+- Avoid patrolling guards and static hazards
+- Reach the exit tile with all available rewards to win the game
 
 ## Build
 
