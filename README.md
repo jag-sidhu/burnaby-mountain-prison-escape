@@ -1,17 +1,22 @@
-# Spring2026Team10
-
-Members:  
-Aujla, Tarnjot,	tsa198@sfu.ca  
-Behniwal, Arsh,	asb62@sfu.ca  
-Janus, Dominic,	dtj@sfu.ca  
-Sidhu, Jagdeep,	jss80@sfu.ca  
-Zhou, Nick,	nza53@sfu.ca  
-
 ## Project Overview
 
 Escape from the Burnaby Mountain Prison is a 2D tile-based prison escape game written in Java. The player must move through the prison, collect all three rewards, avoid guards and hazards, and reach the exit to win.
 
 Video demo: https://youtu.be/UdoQZyGOStY?si=e-fTa_xbtm_YT8h7
+
+## My Contributions
+
+This project was developed by a team of five students as part of the CMPT276 (Intro to Software Engineering) course at Simon Fraser University. The team members who contributed are Arsh Behniwal, Dominic Janus, Jagdeep Sidhu, Nick Zhou and Tarnjot Aujla.
+
+My specific contributions included:
+
+- Engineered the core game objects, including power-ups and static enemies, and designed the logic for spawning precise quantities onto their designated tiles.
+
+- Programmed a variety of unique power-up mechanics, such as a "coffee" speed boost, a "doctor's note" for life restoration, and a "Snow Day" effect that temporarily freezes enemy guard movement.
+
+- Developed complex hazard effects to challenge the player, including point reductions for colliding with bears or handcuffs, and an inverted movement penalty caused by "spoiled milk".
+
+- Implemented the dynamic scoring system that calculates and updates the player's point total based on their interactions with the environment's hazards and rewards.
 
 ## How to Play
 
