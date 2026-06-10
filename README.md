@@ -1,8 +1,17 @@
+# Escape from the Burnaby Mountain Prison
+
 ## Project Overview
 
 Escape from the Burnaby Mountain Prison is a 2D tile-based prison escape game written in Java. The player must move through the prison, collect all three rewards, avoid guards and hazards, and reach the exit to win.
 
 Video demo: https://youtu.be/UdoQZyGOStY?si=e-fTa_xbtm_YT8h7
+
+## How to Play
+
+- Use keyboard controls to move the player (WASD / Arrow Keys)
+- Collect all three rewards (Laptop, Pet Raccoon & Student ID)
+- Avoid patrolling guards and static hazards
+- Reach the exit tile with all available rewards to win the game
 
 ## My Contributions
 
@@ -18,12 +27,12 @@ My specific contributions included:
 
 - Implemented the dynamic scoring system that calculates and updates the player's point total based on their interactions with the environment's hazards and rewards.
 
-## How to Play
+## Tech Stack
 
-- Use keyboard controls to move the player (WASD / Arrow Keys)
-- Collect all three rewards (Laptop, Pet Raccoon & Student ID)
-- Avoid patrolling guards and static hazards
-- Reach the exit tile with all available rewards to win the game
+*   **Language:** Java
+*   **Build Tool:** Maven
+*   **Testing:** JUnit, JaCoCo
+*   **UI/Graphics:** Java Swing / AWT
 
 ## Build
 
